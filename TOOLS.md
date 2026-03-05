@@ -37,4 +37,23 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ---
 
+## My Setup
+
+### Feishu Voice Messages
+
+**Skill location**: `workspace/skills/feishu-voice/`
+
+**Quick send**:
+```bash
+./skills/feishu-voice/feishu-voice.sh "你好，这是测试语音" ou_7c6c3cdce8475c7a8de63811592c37f9
+```
+
+**Preferred voices**:
+- `Ting-Ting` - 默认中文女声
+- `Mei-Jia` - 较新的中文女声
+
+**File location**: `/Users/a123456/.openclaw/workspace/voice_*.opus`
+
+---
+
 Add whatever helps you do your job. This is your cheat sheet.
