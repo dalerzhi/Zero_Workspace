@@ -41,18 +41,24 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ### TTS 音色配置
 
-**Izwi TTS (本地语音 AI) - 默认**
-- 默认音色：`male-deep` (深沉男声，酷且自然) ⭐
-- 可用男声：
-  - `male-narrator` - 男声旁白
-  - `male-calm` - 男声平静
-  - `male-warm` - 男声温暖
-  - `male-deep` - 男声深沉 ← 默认
+**Noiz Cloud TTS (云端语音 AI) - 默认** ⭐
+- **默认音色**: `dde1b9b5` - 故事讲述者（子轩）- 活力男声
+- 可用中文男声：
+  - `96270d87` - 故事讲述者（子轩）- 磁性共鸣
+  - `dde1b9b5` - 故事讲述者（子轩）- 磁性舒缓 ← **默认**
+  - `8316cdf1` - 温柔男声（亦辰）- 磁性舒缓
+- 可用中文女声：
+  - `4f71a876` - 故事讲述者（小雨）- 平静舒缓
+  - `e47a10c4` - 活泼少女（小雨）- 喜悦活泼
+- API: Noiz Cloud API
+- 免费额度：100,000 字符
+
+**Izwi TTS (本地语音 AI) - 备选**
+- 默认音色：`male-deep` (深沉男声)
 - 模型：`Qwen3-TTS-12Hz-0.6B-Base`
 - 服务：`izwi serve` (http://127.0.0.1:8080)
-- CLI: `izwi tts --speaker male-deep "文本"`
 
-**备选：macOS say**
+**macOS say (系统内置) - 不推荐**
 - 中文语音：`Ting-Ting`, `Mei-Jia`
 - 英文语音：`Samantha`, `Daniel`
 

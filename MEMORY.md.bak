@@ -1,29 +1,15 @@
 # MEMORY.md - 长期记忆
 
-_最后更新：2026-03-07 18:17_
+_最后更新：2026-03-06 18:47_
 
 ## 技能与工具
 
-### Noiz Cloud TTS (云端语音 AI) ⭐
-- **状态**: ✅ 已集成并投入使用
-- **API Key**: `~/.noiz_api_key` (Base64 编码)
-- **免费额度**: 100,000 字符
-- **默认音色**: `dde1b9b5` - 故事讲述者（子轩）- 中文男声
-- **推荐音色**:
-  - 男声：`dde1b9b5` (子轩), `96270d87` (子轩), `8316cdf1` (亦辰)
-  - 女声：`4f71a876` (小雨), `e47a10c4` (活泼小雨)
-- **情感参数**: 小写格式 `{"happiness":0.7}`, `{"tenderness":0.6}`, `{"calm":0.8}`
-- **文档**: `workspace/tts-output/DEBUG-SUMMARY.md`, `workspace/tts-output/FIX-RECORD.md`
-
-### 飞书语音发送 (修复版) ✅
-- **技能位置**: `skills/feishu-voice/SKILL.md`
-- **依赖**: `ffmpeg` (brew), `ffprobe` (时长检测)
-- **流程**: Noiz API → WAV → ffmpeg 转 OPUS → 自动检测时长 → 飞书 upload (带 duration) → 发送
-- **关键修复**: 
-  - OPUS 参数：16kHz, 单声道，24kbps (飞书优化)
-  - 必须传递 `duration` 参数 (毫秒) 才能显示正确时长
-  - 插件已修复：`extensions/feishu/src/media.ts` (自动检测时长)
-- **备份文件**: `media.ts.backup.20260307_180813`
+### 飞书语音发送
+- 技能位置：`skills/feishu-voice/SKILL.md`
+- 依赖：`ffmpeg` (brew), `say` (macOS 内置)
+- 流程：TTS → `.m4a` → ffmpeg 转 `.opus` → 飞书 message 发送
+- 关键：必须用 `.opus` 格式才能显示为原生语音消息
+- 中文语音：`Ting-Ting`, `Mei-Jia`, `Sin-Ji`
 
 ### STT (语音识别)
 - Whisper CLI 已安装：`brew install openai-whisper`

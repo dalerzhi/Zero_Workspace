@@ -1,34 +1,41 @@
 #!/bin/bash
 # feishu-voice: Send native voice messages on Feishu
-# Usage: feishu-voice "message text" [target_user_id] [voice_name]
+# Usage: feishu-voice "message text" [target_user_id] [voice_id]
+# 
+# Uses Noiz Cloud API for TTS generation (云端 API)
+# Default voices:
+#   Male:   96270d87 (故事讲述者 - 子轩)
+#   Female: d44f2ab4 (游戏少女 - 小雨)
 
 set -e
 
 TEXT="$1"
 TARGET="${2:-}"
-VOICE="${3:-Ting-Ting}"
+VOICE_ID="${3:-d44f2ab4}"  # Default to female voice
 WORKSPACE="/Users/a123456/.openclaw/workspace"
+NOIZ_SCRIPT="$WORKSPACE/.agents/skills/tts/scripts/tts.sh"
 
 if [ -z "$TEXT" ]; then
-    echo "Usage: feishu-voice \"message text\" [target_user_id] [voice_name]"
-    echo "  message_text: The text to convert to speech"
-    echo "  target_user_id: Feishu user ID (optional, uses default channel if omitted)"
-    echo "  voice_name: macOS voice name (default: Ting-Ting)"
+    echo "Usage: feishu-voice \"message text\" [target_user_id] [voice_id]"
     echo ""
-    echo "Available voices: say -v '?'"
+    echo "Default voices:"
+    echo "  Female (default): d44f2ab4 - 游戏少女（小雨）"
+    echo "  Male:             96270d87 - 故事讲述者（子轩）"
+    echo ""
+    echo "More voices: curl https://noiz.ai/v1/voices"
     exit 1
 fi
 
 # Generate unique filename
 TIMESTAMP=$(date +%s)
-M4A_FILE="$WORKSPACE/voice_${TIMESTAMP}.m4a"
+WAV_FILE="$WORKSPACE/voice_${TIMESTAMP}.wav"
 OPUS_FILE="$WORKSPACE/voice_${TIMESTAMP}.opus"
 
-echo "🎤 Generating TTS with voice: $VOICE"
-say -v "$VOICE" "$TEXT" -o "$M4A_FILE"
+echo "🎤 Generating TTS with Noiz Cloud API (voice_id: $VOICE_ID)"
+bash "$NOIZ_SCRIPT" speak --voice-id "$VOICE_ID" -t "$TEXT" -o "$WAV_FILE" 2>&1 | tail -1
 
 echo "🔄 Converting to Opus format..."
-ffmpeg -i "$M4A_FILE" -c libopus "$OPUS_FILE" -y -loglevel error
+ffmpeg -i "$WAV_FILE" -c libopus "$OPUS_FILE" -y -loglevel error
 
 echo "📨 Sending to Feishu..."
 if [ -n "$TARGET" ]; then
@@ -38,7 +45,7 @@ else
 fi
 
 # Cleanup intermediate file
-rm -f "$M4A_FILE"
+rm -f "$WAV_FILE"
 
 echo "✅ Voice message sent!"
 echo "   File: $OPUS_FILE"

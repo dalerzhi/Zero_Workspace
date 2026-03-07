@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "tts": {
+      "source": "/tmp/noizai-skills",
+      "sourceType": "local",
+      "computedHash": "cb4e5ff3829a7a73d3f5a01a64b4bcbf364808bca064c74f5344877fe371c772"
+    }
+  }
+}
