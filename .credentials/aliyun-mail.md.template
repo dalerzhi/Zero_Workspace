@@ -1,0 +1,17 @@
+# 阿里云邮箱凭证
+# 权限设置：chmod 600 aliyun-mail.md
+# 复制此模板为 aliyun-mail.md 并填入真实信息
+
+### 邮箱 1 - 公司主邮箱
+- email: your-email@company.com
+- imap_server: imap.qiye.aliyun.com
+- imap_port: 993
+- auth_code: your-auth-code-here
+- note: 主要工作邮箱
+
+### 邮箱 2 - 备用邮箱（可选）
+- email: your-email@aliyun.com
+- imap_server: imap.aliyun.com
+- imap_port: 993
+- auth_code: your-auth-code-here
+- note: 个人邮箱

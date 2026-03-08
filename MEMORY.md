@@ -1,6 +1,6 @@
 # MEMORY.md - 长期记忆
 
-_最后更新：2026-03-07 18:17_
+_最后更新：2026-03-08 06:00_
 
 ## 技能与工具
 
@@ -78,6 +78,30 @@ _最后更新：2026-03-07 18:17_
   - `LEARNINGS.md` - 纠正、知识缺口、最佳实践
   - `ERRORS.md` - 命令失败、异常
   - `FEATURE_REQUESTS.md` - 功能请求
+
+### Aliyun Mail (阿里云邮箱) 📧
+- 状态：🔧 技能已创建，待配置凭证
+- 位置：`workspace/skills/aliyun-mail/`
+- 功能：多邮箱 IMAP 收取、附件解析 (Word/Excel/PPT/PDF)、每日总结
+- 依赖：`pip3 install imap-tools python-docx openpyxl python-pptx pypdf2`
+- 配置：`.credentials/aliyun-mail.md` (参考模板：`.credentials/aliyun-mail.md.template`)
+- 授权码指南：`skills/aliyun-mail/README-授权码.md`
+- 用法：
+  ```bash
+  # 安装依赖
+  bash skills/aliyun-mail/aliyun-mail.sh install
+  
+  # 测试连接
+  bash skills/aliyun-mail/aliyun-mail.sh test
+  
+  # 收取昨日邮件并总结
+  bash skills/aliyun-mail/aliyun-mail.sh summary --days 1
+  
+  # 配置每日 8 点自动任务
+  openclaw cron create email-daily-summary \
+    --schedule "0 8 * * *" \
+    --command "cd /Users/a123456/.openclaw/workspace && bash skills/aliyun-mail/aliyun-mail.sh summary --days 1"
+  ```
 
 ## 重要经验
 1. 每天早上先检查 `memory/` 目录和 `MEMORY.md`
