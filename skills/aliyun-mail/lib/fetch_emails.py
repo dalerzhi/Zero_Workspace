@@ -147,31 +147,113 @@ def send_to_feishu(markdown_content, chat_id):
         return False
 
 
-def extract_text_from_docx(file_path):
-    """从 Word 文档提取文本"""
+def extract_text_from_buffer(buffer, file_type):
+    """从内存 buffer 提取文本（不写文件）"""
     try:
-        doc = DocxDocument(file_path)
-        return '\n'.join([para.text for para in doc.paragraphs if para.text.strip()])
-    except Exception as e:
-        return f"[Word 读取失败：{e}]"
-
-
-def extract_text_from_xlsx(file_path):
-    """从 Excel 提取文本（前 5 行）"""
-    try:
-        wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
-        texts = []
-        for sheet_name in wb.sheetnames[:2]:  # 只读前 2 个工作表
-            sheet = wb[sheet_name]
-            for row_idx, row in enumerate(sheet.iter_rows(max_row=5, values_only=True)):
-                if row_idx >= 5:
+        from io import BytesIO
+        
+        if file_type == 'docx':
+            doc = DocxDocument(BytesIO(buffer))
+            return '\n'.join([para.text for para in doc.paragraphs if para.text.strip()])
+        
+        elif file_type == 'xlsx':
+            wb = openpyxl.load_workbook(BytesIO(buffer), read_only=True, data_only=True)
+            texts = []
+            for sheet_name in wb.sheetnames[:2]:
+                sheet = wb[sheet_name]
+                for row_idx, row in enumerate(sheet.iter_rows(max_row=10, values_only=True)):
+                    if row_idx >= 10:
+                        break
+                    cells = [str(cell) if cell is not None else '' for cell in row]
+                    if any(cells):
+                        texts.append(' | '.join(cells))
+            return '\n'.join(texts)
+        
+        elif file_type == 'pptx':
+            prs = Presentation(BytesIO(buffer))
+            texts = []
+            for slide_idx, slide in enumerate(prs.slides):
+                if slide_idx >= 5:
                     break
-                cells = [str(cell) if cell is not None else '' for cell in row]
-                if any(cells):
-                    texts.append(' | '.join(cells))
-        return '\n'.join(texts)
+                for shape in slide.shapes:
+                    if hasattr(shape, "text") and shape.text.strip():
+                        texts.append(shape.text.strip())
+            return '\n'.join(texts)
+        
+        elif file_type == 'pdf':
+            reader = PdfReader(BytesIO(buffer))
+            texts = []
+            for page_idx, page in enumerate(reader.pages):
+                if page_idx >= 5:
+                    break
+                text = page.extract_text()
+                if text:
+                    texts.append(text.strip())
+            return '\n'.join(texts)
+        
+        return None
     except Exception as e:
-        return f"[Excel 读取失败：{e}]"
+        return f"[读取失败：{e}]"
+
+
+def summarize_document_text(text):
+    """总结文档内容"""
+    if not text:
+        return None
+    
+    # 清理和分段
+    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip() and len(p.strip()) > 20]
+    
+    if not paragraphs:
+        return None
+    
+    # 提取关键信息
+    first_para = paragraphs[0] if paragraphs else ''
+    
+    # 合同/协议类
+    if any(kw in text for kw in ['合同', '协议', '签署', '甲方', '乙方']):
+        return "合同/协议文档"
+    
+    # 报告类
+    if any(kw in text for kw in ['报告', '总结', '汇报', '分析']):
+        return "工作报告"
+    
+    # 规范/制度类
+    if any(kw in text for kw in ['规范', '制度', '流程', '规定']):
+        return "制度文档"
+    
+    # 通用：返回第一段精简版
+    first_sentence = re.split(r'[。！？.!]', first_para)[0]
+    if len(first_sentence) > 50:
+        return first_sentence[:50] + '...'
+    return first_sentence
+
+
+def summarize_excel_text(text):
+    """总结 Excel 内容"""
+    if not text:
+        return None
+    
+    lines = text.split('\n')
+    
+    # 尝试识别数据类型
+    if any(kw in text for kw in ['金额', '合计', '总计', '¥', '元']):
+        # 财务数据
+        amounts = re.findall(r'[\d,]+\.?\d*', text)
+        if amounts:
+            return f"财务数据，含 {len(amounts)} 个金额项"
+    
+    if any(kw in text for kw in ['姓名', '部门', '岗位', '员工']):
+        return "人员信息表"
+    
+    if any(kw in text for kw in ['日期', '时间', '计划', '进度']):
+        return "进度计划表"
+    
+    # 通用
+    if len(lines) > 0:
+        return f"数据表格，{len(lines)} 行"
+    
+    return None
 
 
 def extract_text_from_pptx(file_path):
@@ -206,39 +288,41 @@ def extract_text_from_pdf(file_path):
         return f"[PDF 读取失败：{e}]"
 
 
-def process_attachment(attach, output_dir):
-    """处理附件，返回内容和保存路径"""
+def process_attachment(attach, output_dir=None):
+    """处理附件，提取关键信息（不保存文件）"""
     if not attach.payload:
-        return None, None
+        return None
     
     filename = attach.filename
     if not filename:
-        return None, None
+        return None
     
-    # 清理文件名
-    safe_filename = filename.replace('/', '_').replace('\\', '_')
-    output_path = os.path.join(output_dir, safe_filename)
+    # 根据类型提取关键信息
+    lower_name = filename.lower()
     
-    # 保存附件
-    with open(output_path, 'wb') as f:
-        f.write(attach.payload)
-    
-    # 根据类型提取文本
-    content = None
-    lower_name = safe_filename.lower()
-    
+    # 文档类：提取文本
     if lower_name.endswith('.docx'):
-        content = extract_text_from_docx(output_path)
-    elif lower_name.endswith(('.xlsx', '.xls')):
-        content = extract_text_from_xlsx(output_path)
-    elif lower_name.endswith(('.pptx', '.ppt')):
-        content = extract_text_from_pptx(output_path)
-    elif lower_name.endswith('.pdf'):
-        content = extract_text_from_pdf(output_path)
-    else:
-        content = f"[不支持的文件类型：{lower_name.split('.')[-1]}]"
+        text = extract_text_from_buffer(attach.payload, 'docx')
+        return {'type': 'doc', 'summary': summarize_document_text(text)}
     
-    return content, output_path
+    elif lower_name.endswith(('.xlsx', '.xls')):
+        text = extract_text_from_buffer(attach.payload, 'xlsx')
+        return {'type': 'excel', 'summary': summarize_excel_text(text)}
+    
+    elif lower_name.endswith(('.pptx', '.ppt')):
+        text = extract_text_from_buffer(attach.payload, 'pptx')
+        return {'type': 'ppt', 'summary': summarize_document_text(text)}
+    
+    elif lower_name.endswith('.pdf'):
+        text = extract_text_from_buffer(attach.payload, 'pdf')
+        return {'type': 'pdf', 'summary': summarize_document_text(text)}
+    
+    # 图片类：只记录文件名
+    elif lower_name.endswith(('.png', '.jpg', '.jpeg', '.gif')):
+        return {'type': 'image', 'filename': filename}
+    
+    else:
+        return {'type': 'other', 'filename': filename}
 
 
 def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
@@ -281,21 +365,19 @@ def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
                     'account': account['email']
                 }
                 
-                # 处理附件（下载并解析内容）
+                # 处理附件（只解析内容，不保存文件）
                 for attach in msg.attachments:
                     attach_info = {
                         'filename': attach.filename,
                         'content_type': attach.content_type,
                         'size': len(attach.payload) if attach.payload else 0,
-                        'content': None,
-                        'path': None
+                        'summary': None
                     }
                     
-                    # 如果有输出目录，下载并解析附件
-                    if output_dir:
-                        content, path = process_attachment(attach, output_dir)
-                        attach_info['content'] = content
-                        attach_info['path'] = path
+                    # 解析附件内容（不保存）
+                    attach_result = process_attachment(attach)
+                    if attach_result:
+                        attach_info['summary'] = attach_result.get('summary')
                     
                     email_data['attachments'].append(attach_info)
                 
@@ -662,15 +744,21 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
                 summary.append(f"发件人：{email['from']} | 时间：{email['date'].strftime('%H:%M')} | 📬 收件人\n")
                 summary.append(f"{content_summary}\n")
                 
-                # 附件信息
+                # 附件信息（显示总结）
                 if email['attachments']:
-                    att_names = [a['filename'] for a in email['attachments'][:3]]
-                    att_text = f"{len(email['attachments'])} 个附件"
+                    att_summaries = []
+                    for att in email['attachments'][:3]:
+                        if att.get('summary'):
+                            att_summaries.append(f"{att['filename']}: {att['summary']}")
+                        else:
+                            att_summaries.append(att['filename'])
+                    
+                    att_text = f"📎 {len(email['attachments'])} 个附件："
                     if len(email['attachments']) > 3:
-                        att_text += f"（含 {', '.join(att_names)} 等）"
+                        att_text += f"{', '.join(att_summaries)} 等"
                     else:
-                        att_text = f"附件：{', '.join(att_names)}"
-                    summary.append(f"📎 {att_text}\n")
+                        att_text += f"{', '.join(att_summaries)}"
+                    summary.append(f"{att_text}\n")
                 summary.append("")
     
     # 重要抄送
@@ -681,6 +769,12 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
             if content_summary:
                 summary.append(f"- **{email['subject'] or '(无主题)'}** ({email['from']}) 📧 抄送\n")
                 summary.append(f"  {content_summary}\n")
+                
+                # 附件信息
+                if email['attachments']:
+                    for att in email['attachments'][:2]:
+                        if att.get('summary'):
+                            summary.append(f"  📎 {att['filename']}: {att['summary']}\n")
         summary.append("")
     
     # 待办事项
@@ -724,7 +818,7 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
     # 附件汇总
     total_attachments = sum(len(e['attachments']) for e in emails)
     if total_attachments > 0:
-        summary.append(f"\n---\n📁 附件总数：{total_attachments} 个（已保存到 `email-reports/{date_str}/`）")
+        summary.append(f"\n---\n📁 附件总数：{total_attachments} 个（已解析内容，未保存文件）")
     
     return '\n'.join(summary)
 
@@ -793,13 +887,10 @@ def main():
         return
     
     if args.action == 'summary':
-        # 使用 email-reports 目录，而不是 memory
-        output_dir = workspace_dir / 'email-reports' / datetime.now().strftime('%Y-%m-%d')
-        os.makedirs(output_dir, exist_ok=True)
+        # 不再保存附件到文件
+        print("\n📧 收取邮件并解析附件内容（不保存文件）...")
         
-        print(f"\n📂 附件保存目录：{output_dir}")
-        
-        # 收取邮件并下载附件
+        # 收取邮件
         all_emails = []
         for account in accounts:
             print(f"\n正在收取 {account['email']} 的邮件...")
@@ -808,7 +899,7 @@ def main():
                 days=args.days,
                 since=args.since,
                 until=args.until,
-                output_dir=str(output_dir) if args.include_attachments else None
+                output_dir=None  # 不再保存文件
             )
             print(f"  ✓ 收取 {len(emails)} 封邮件")
             all_emails.extend(emails)
@@ -816,17 +907,15 @@ def main():
         print(f"\n总计：{len(all_emails)} 封邮件")
         
         # 生成总结
-        summary = generate_summary(
-            all_emails,
-            include_attachments=args.include_attachments,
-            output_dir=str(output_dir) if args.include_attachments else None
-        )
+        summary = generate_summary(all_emails)
         print("\n" + "="*60)
         print(summary)
         print("="*60)
         
-        # 保存到 email-reports 目录
-        output_file = output_dir / f"{datetime.now().strftime('%Y-%m-%d')}-邮件日报.md"
+        # 保存到 workspace
+        date_str = datetime.now().strftime('%Y-%m-%d')
+        output_file = workspace_dir / 'email-reports' / date_str / f"{date_str}-邮件日报.md"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(summary)
         print(f"\n💾 总结已保存：{output_file}")
