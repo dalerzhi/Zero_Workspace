@@ -39,13 +39,13 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ## My Setup
 
-### TTS 音色配置
+### TTS 音色配置 ⭐
 
-**Noiz Cloud TTS (云端语音 AI) - 默认** ⭐
-- **默认音色**: `dde1b9b5` - 故事讲述者（子轩）- 活力男声
+**Noiz Cloud TTS (云端语音 AI) - 默认**
+- **默认音色**: `dde1b9b5` - 故事讲述者（子轩）- 磁性舒缓 ← **固定使用**
 - 可用中文男声：
   - `96270d87` - 故事讲述者（子轩）- 磁性共鸣
-  - `dde1b9b5` - 故事讲述者（子轩）- 磁性舒缓 ← **默认**
+  - `dde1b9b5` - 故事讲述者（子轩）- 磁性舒缓
   - `8316cdf1` - 温柔男声（亦辰）- 磁性舒缓
 - 可用中文女声：
   - `4f71a876` - 故事讲述者（小雨）- 平静舒缓
@@ -58,20 +58,29 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - 模型：`Qwen3-TTS-12Hz-0.6B-Base`
 - 服务：`izwi serve` (http://127.0.0.1:8080)
 
-**macOS say (系统内置) - 不推荐**
-- 中文语音：`Ting-Ting`, `Mei-Jia`
-- 英文语音：`Samantha`, `Daniel`
+### 飞书语音发送 ⭐
 
-### Feishu Voice Messages
+**默认方式**: Python 脚本 (`scripts/feishu-voice.py`)
 
-**Skill location**: `workspace/skills/feishu-voice/`
-
-**Quick send**:
+**快速发送**:
 ```bash
-./skills/feishu-voice/feishu-voice.sh "你好，这是测试语音" ou_7c6c3cdce8475c7a8de63811592c37f9
+# 使用默认配置（dde1b9b5 男声）
+python3 scripts/feishu-voice.py "要发送的文本"
+
+# 指定接收者
+python3 scripts/feishu-voice.py "文本" --chat-id ou_xxxxx
+
+# 指定音色
+python3 scripts/feishu-voice.py "文本" --voice-id 8316cdf1
 ```
 
-**File location**: `/Users/a123456/.openclaw/workspace/voice_*.opus`
+**优点**：
+- ✅ 完全独立，不依赖插件
+- ✅ 自动清理临时文件
+- ✅ 可自定义所有参数
+- ✅ 在新 Session 中也能用
+
+**配置位置**: `~/.openclaw/preferences.json`
 
 ---
 

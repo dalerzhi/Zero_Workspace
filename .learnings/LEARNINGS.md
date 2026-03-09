@@ -149,3 +149,91 @@ ffmpeg -y -i input.wav \
 - Tags: ffmpeg, opus, feishu, audio-encoding
 
 ---
+
+## [LRN-2026-03-09-2301] auto
+
+**Logged**: 2026-03-09T23:01:38+0800
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+aliyun-mail skill 重构：智能收件人识别 + 邮件内容总结 + 分发包
+
+### Details
+_待补充_
+
+### Suggested Action
+_待补充_
+
+### Metadata
+- Source: quick-log
+- Tags: auto-logged
+
+---
+
+## [LRN-2026-03-09-2301] auto
+
+**Logged**: 2026-03-09T23:01:41+0800
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+Session 管理优化：从自动重置改为 Context 监控
+
+### Details
+_待补充_
+
+### Suggested Action
+_待补充_
+
+### Metadata
+- Source: quick-log
+- Tags: auto-logged
+
+---
+
+## [LRN-2026-03-09-2331] auto
+
+**Logged**: 2026-03-09T23:31:27+0800
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+aliyun-mail skill 重构：实现智能收件人/抄送识别，区分行动项归属；支持 AI 总结邮件内容而非罗列原文
+
+### Details
+_待补充_
+
+### Suggested Action
+_待补充_
+
+### Metadata
+- Source: quick-log
+- Tags: auto-logged
+
+---
+
+## [LRN-2026-03-09-2331] auto
+
+**Logged**: 2026-03-09T23:31:31+0800
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+Session 管理机制优化：禁用自动重置，改为 Context 使用量监控；修复 Context 估算方法
+
+### Details
+_待补充_
+
+### Suggested Action
+_待补充_
+
+### Metadata
+- Source: quick-log
+- Tags: auto-logged
+
+---

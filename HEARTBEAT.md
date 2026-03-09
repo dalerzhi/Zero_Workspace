@@ -1,6 +1,24 @@
-# HEARTBEAT.md - 每日检查清单
+# HEARTBEAT.md - 每日检查清单 + Session 初始化
 
-_最后更新：2026-03-07_
+_最后更新：2026-03-09_
+
+---
+
+## 🚀 Session 启动时自动运行
+
+每次新 Session 启动时自动执行：
+
+```bash
+# 加载用户偏好配置
+python3 ~/.openclaw/workspace/scripts/init-session.py
+```
+
+**加载内容**：
+- TTS 默认音色（dde1b9b5 - 子轩）
+- 飞书默认接收者
+- 摄像头设备
+- 邮箱账户
+- Context 监控配置
 
 ---
 
