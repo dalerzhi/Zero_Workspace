@@ -310,64 +310,242 @@ def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
     return emails
 
 
+def classify_email(email):
+    """智能分类邮件"""
+    subject = (email.get('subject') or '').lower()
+    text = (email.get('text') or '').lower()
+    content = subject + ' ' + text
+    
+    # 重要邮件关键词
+    important_keywords = [
+        '紧急', 'urgent', '重要', 'priority', '立即', 'asap',
+        '审批', 'approval', '确认', 'confirm', '决定', 'decision',
+        '合同', 'contract', '订单', 'order', '付款', 'payment',
+        '账单', 'invoice', '结算', 'budget', '预算'
+    ]
+    
+    # 行动项关键词
+    action_keywords = [
+        '请', '需要', 'need', '必须', 'must', '应该', 'should',
+        '安排', 'arrange', '准备', 'prepare', '提交', 'submit',
+        '回复', 'reply', '反馈', 'feedback', '处理', 'handle',
+        '联系', 'contact', '对接', 'coordinate', '提供', 'provide'
+    ]
+    
+    # 通知类关键词
+    notification_keywords = [
+        '通知', 'notice', '提醒', 'reminder', '会议', 'meeting',
+        '日程', 'schedule', '邀请', 'invitation', '系统', 'system',
+        '自动', 'auto', '订阅', 'subscription', '报告', 'report'
+    ]
+    
+    # 检查关键词
+    important_score = sum(1 for kw in important_keywords if kw in content)
+    action_score = sum(1 for kw in action_keywords if kw in content)
+    notification_score = sum(1 for kw in notification_keywords if kw in content)
+    
+    # 分类逻辑
+    if important_score >= 2 or (important_score >= 1 and action_score >= 2):
+        return 'important', '重要事项'
+    elif action_score >= 2:
+        return 'action', '待办事项'
+    elif notification_score >= 2:
+        return 'notification', '通知'
+    else:
+        return 'normal', '普通邮件'
+
+
+def extract_action_items(email):
+    """从邮件中提取行动项"""
+    text = email.get('text', '')
+    actions = []
+    
+    # 清理 HTML 和邮件头
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'主 题：.*?\n', '', text)  # 移除主题行
+    text = re.sub(r'发件人：.*?发送时间：.*?(?=\n\n|\Z)', '', text, flags=re.DOTALL)  # 移除引用头
+    
+    # 提取包含行动词的句子
+    action_verbs = ['请', '需要', '必须', '应该', '安排', '准备', '提交', '回复', '反馈', '处理', '联系', '提供', '确认', '对接', '核实']
+    
+    # 按句子分割
+    sentences = re.split(r'[。！？.!?\n]', text)
+    for sentence in sentences:
+        sentence = sentence.strip()
+        
+        # 过滤太短或太长的句子
+        if len(sentence) < 15 or len(sentence) > 150:
+            continue
+        
+        # 过滤纯主题行或签名
+        if sentence.startswith('主 题') or sentence.startswith('发件人') or sentence.startswith('Hi ') or '@' in sentence:
+            continue
+        
+        # 检查是否包含行动词
+        if any(verb in sentence for verb in action_verbs):
+            # 提取日期信息
+            date_match = re.search(r'(\d{1,2}月\d{1,2}日 [上下午 ]|\d{1,2}/\d{1,2}|今天 | 明天 | 下周一 | 本周五)', sentence)
+            if date_match:
+                sentence = f"⏰ {date_match.group()}：{sentence}"
+            
+            actions.append(sentence)
+    
+    # 去重（避免相似句子）
+    unique_actions = []
+    seen = set()
+    for action in actions:
+        # 用前 30 个字符作为去重 key
+        key = action[:30]
+        if key not in seen:
+            seen.add(key)
+            unique_actions.append(action)
+    
+    return unique_actions[:3]  # 最多返回 3 个行动项
+
+
+def summarize_email_content(email, max_length=300):
+    """智能总结邮件内容"""
+    text = email.get('text', '')
+    if not text:
+        return None
+    
+    # 清理 HTML 和引用
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'-{3,}.*?发件人：.*?(?=\n\n|\Z)', '', text, flags=re.DOTALL)  # 移除引用部分
+    text = re.sub(r'_{3,}.*', '', text, flags=re.DOTALL)  # 移除签名
+    
+    # 提取关键段落
+    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip() and len(p.strip()) > 20]
+    
+    if not paragraphs:
+        return None
+    
+    # 优先使用前两段
+    summary_parts = []
+    for para in paragraphs[:2]:
+        if len(para) < max_length:
+            summary_parts.append(para)
+        else:
+            # 截取前 max_length 字符，确保在句子边界切断
+            truncated = para[:max_length]
+            last_punct = re.search(r'[。！？.!?,]', truncated)
+            if last_punct:
+                truncated = truncated[:last_punct.end()]
+            summary_parts.append(truncated + '...')
+    
+    return '\n'.join(summary_parts)
+
+
 def generate_summary(emails, include_attachments=True, output_dir=None):
-    """生成邮件总结"""
+    """生成智能邮件总结"""
     if not emails:
         return "📭 没有新邮件"
     
     summary = []
-    summary.append(f"# 📧 邮件日报 ({datetime.now().strftime('%Y-%m-%d')})\n")
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    summary.append(f"# 📧 邮件日报 ({date_str})\n")
+    
+    # 分类邮件
+    important_emails = []
+    action_emails = []
+    notification_emails = []
+    normal_emails = []
+    
+    for email in emails:
+        category, _ = classify_email(email)
+        if category == 'important':
+            important_emails.append(email)
+        elif category == 'action':
+            action_emails.append(email)
+        elif category == 'notification':
+            notification_emails.append(email)
+        else:
+            normal_emails.append(email)
     
     # 概览
-    total = len(emails)
-    with_attachments = sum(1 for e in emails if e['attachments'])
-    total_attachments = sum(len(e['attachments']) for e in emails)
+    summary.append("## 📊 概览")
+    summary.append(f"- 总邮件数：**{len(emails)}**")
+    if important_emails:
+        summary.append(f"- 🔴 重要事项：**{len(important_emails)}**")
+    if action_emails:
+        summary.append(f"- 📋 待办事项：**{len(action_emails)}**")
+    if notification_emails:
+        summary.append(f"- 📢 通知：**{len(notification_emails)}**")
+    if normal_emails:
+        summary.append(f"- 📮 普通邮件：**{len(normal_emails)}**")
     
-    summary.append("## 概览")
-    summary.append(f"- 总邮件数：{total}")
-    summary.append(f"- 含附件邮件：{with_attachments}")
-    summary.append(f"- 附件总数：{total_attachments}\n")
+    # 行动项汇总（最重要）
+    all_actions = []
+    for email in important_emails + action_emails:
+        actions = extract_action_items(email)
+        if actions:
+            all_actions.append({
+                'from': email['from'],
+                'subject': email['subject'],
+                'actions': actions
+            })
     
-    # 重点邮件（带附件的优先）
-    summary.append("## 重点邮件\n")
+    if all_actions:
+        summary.append("\n## ⚡ 需要行动\n")
+        for item in all_actions:
+            summary.append(f"**{item['subject'] or '(无主题)'}** ({item['from']})")
+            for action in item['actions']:
+                summary.append(f"- {action}")
+            summary.append("")
     
-    for idx, email in enumerate(emails[:10], 1):  # 最多显示 10 封
-        summary.append(f"### {idx}. {email['subject'] or '(无主题)'}")
-        summary.append(f"**发件人**: {email['from']}")
-        summary.append(f"**时间**: {email['date'].strftime('%Y-%m-%d %H:%M')}")
-        summary.append(f"**收件人**: {email['to']}\n")
-        
-        # 邮件正文摘要
-        text = email['text'][:800].strip() if email['text'] else ''
-        if text:
-            # 清理 HTML 标签
-            text = re.sub(r'<[^>]+>', '', text)
-            text = re.sub(r'\n\s*\n', '\n\n', text)  # 清理多余空行
-            summary.append(f"**正文摘要**:\n{text}\n")
-        
-        # 附件信息和内容
-        if email['attachments']:
-            summary.append("**附件详情**:\n")
-            for att_idx, att in enumerate(email['attachments'], 1):
-                summary.append(f"  **{att_idx}. {att['filename']}** ({format_size(att['size'])})")
+    # 重要邮件
+    if important_emails:
+        summary.append("\n## 🔴 重要事项\n")
+        for email in important_emails:
+            content_summary = summarize_email_content(email)
+            if content_summary:
+                summary.append(f"**{email['subject'] or '(无主题)'}**\n")
+                summary.append(f"发件人：{email['from']} | 时间：{email['date'].strftime('%H:%M')}\n")
+                summary.append(f"{content_summary}\n")
                 
-                if att['content']:
-                    # 显示附件内容摘要（前 500 字）
-                    content_preview = att['content'][:500]
-                    if len(att['content']) > 500:
-                        content_preview += "\n  ...(内容过长，已截断)"
-                    summary.append(f"\n  **内容摘要**:\n  ```\n  {content_preview}\n  ```\n")
-                elif att['path']:
-                    summary.append(f"\n  _文件已保存：{att['path']}_\n")
-                summary.append("\n")
-        
-        summary.append("---\n")
+                # 附件信息（仅显示文件名和数量）
+                if email['attachments']:
+                    att_names = [a['filename'] for a in email['attachments'][:3]]
+                    att_text = f"{len(email['attachments'])} 个附件"
+                    if len(email['attachments']) > 3:
+                        att_text += f"（含 {', '.join(att_names)} 等）"
+                    else:
+                        att_text = f"附件：{', '.join(att_names)}"
+                    summary.append(f"📎 {att_text}\n")
+                summary.append("")
     
-    # 其他邮件
-    if len(emails) > 10:
-        summary.append(f"\n## 其他邮件 ({len(emails) - 10} 封)\n")
-        for email in emails[10:]:
-            summary.append(f"- {email['subject'] or '(无主题)'} - {email['from']}")
+    # 待办事项
+    if action_emails and not important_emails:
+        summary.append("\n## 📋 待办事项\n")
+        for email in action_emails:
+            content_summary = summarize_email_content(email, max_length=200)
+            if content_summary:
+                summary.append(f"- **{email['subject'] or '(无主题)'}** ({email['from']})\n")
+                summary.append(f"  {content_summary}\n")
+    
+    # 通知（合并显示）
+    if notification_emails:
+        summary.append("\n## 📢 通知\n")
+        for email in notification_emails[:5]:  # 最多显示 5 个
+            summary.append(f"- {email['subject'] or '(无主题)'} - {email['from']} ({email['date'].strftime('%H:%M')})")
+        if len(notification_emails) > 5:
+            summary.append(f"- ... 还有 {len(notification_emails) - 5} 条通知")
+        summary.append("")
+    
+    # 普通邮件（精简列表）
+    if normal_emails:
+        summary.append("\n## 📮 其他邮件\n")
+        for email in normal_emails[:5]:  # 最多显示 5 个
+            att_icon = "📎" if email['attachments'] else ""
+            summary.append(f"- {att_icon} {email['subject'] or '(无主题)'} - {email['from']}")
+        if len(normal_emails) > 5:
+            summary.append(f"- ... 还有 {len(normal_emails) - 5} 封邮件")
+        summary.append("")
+    
+    # 附件汇总
+    total_attachments = sum(len(e['attachments']) for e in emails)
+    if total_attachments > 0:
+        summary.append(f"\n---\n📁 附件总数：{total_attachments} 个（已保存到 `email-reports/{date_str}/`）")
     
     return '\n'.join(summary)
 
