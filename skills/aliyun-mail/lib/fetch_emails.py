@@ -5,16 +5,18 @@
 """
 
 import argparse
+import json
 import os
 import re
 import sys
 from datetime import datetime, timedelta
 from email.header import decode_header
 from pathlib import Path
+import requests
 
 # 邮件处理
 try:
-    from imap_tools import MailBox
+    from imap_tools import MailBox, AND
 except ImportError:
     print("❌ 缺少 imap-tools，运行：pip3 install imap-tools")
     sys.exit(1)
@@ -49,7 +51,8 @@ def parse_credentials(cred_file):
             
             if ':' in line:
                 key, value = line.split(':', 1)
-                key = key.strip().lower().replace('-', '_')
+                # 去掉开头的 `-` 和空格，然后替换 `-` 为 `_`
+                key = key.strip().lstrip('-').strip().lower().replace('-', '_')
                 value = value.strip()
                 current_account[key] = value
         
@@ -64,6 +67,10 @@ def decode_mime(header):
     if not header:
         return ''
     
+    # imap_tools 可能返回 tuple (如 msg.to)
+    if isinstance(header, tuple):
+        header = ', '.join([str(h) for h in header])
+    
     decoded = decode_header(header)
     result = ''
     for text, encoding in decoded:
@@ -72,6 +79,72 @@ def decode_mime(header):
         else:
             result += text
     return result
+
+
+def format_size(size_bytes):
+    """格式化文件大小"""
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size_bytes < 1024.0:
+            return f"{size_bytes:.1f}{unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.1f}TB"
+
+
+def send_to_feishu(markdown_content, chat_id):
+    """发送 Markdown 消息到飞书"""
+    # 飞书凭证（从环境变量或配置文件读取）
+    app_id = os.environ.get('FEISHU_APP_ID', 'cli_a909ad9f75fadbb5')
+    app_secret = os.environ.get('FEISHU_APP_SECRET', 'p1MtN6OZic92OCOpMgxaZdSzAvRfsrys')
+    
+    # 1. 获取 tenant_access_token
+    try:
+        token_url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+        token_resp = requests.post(token_url, json={"app_id": app_id, "app_secret": app_secret}, timeout=10)
+        token_data = token_resp.json()
+        
+        if token_data.get('code') != 0:
+            print(f"❌ 获取飞书 token 失败：{token_data.get('msg')}")
+            return False
+        
+        token = token_data['tenant_access_token']
+    except Exception as e:
+        print(f"❌ 飞书认证失败：{e}")
+        return False
+    
+    # 2. 发送消息
+    try:
+        msg_url = "https://open.feishu.cn/open-apis/im/v1/messages"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        
+        # 飞书 Markdown 消息
+        content = {
+            "text": markdown_content
+        }
+        
+        payload = {
+            "receive_id": chat_id,
+            "msg_type": "text",  # 使用 text 类型，因为飞书对 Markdown 支持有限
+            "content": json.dumps(content)
+        }
+        
+        params = {"receive_id_type": "open_id"}
+        resp = requests.post(msg_url, headers=headers, params=params, json=payload, timeout=10)
+        result = resp.json()
+        
+        if result.get('code') == 0:
+            msg_id = result['data']['message_id']
+            print(f"✅ 飞书发送成功：{msg_id}")
+            return True
+        else:
+            print(f"❌ 飞书发送失败：{result.get('msg')}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ 飞书发送异常：{e}")
+        return False
 
 
 def extract_text_from_docx(file_path):
@@ -142,14 +215,17 @@ def process_attachment(attach, output_dir):
     if not filename:
         return None, None
     
+    # 清理文件名
+    safe_filename = filename.replace('/', '_').replace('\\', '_')
+    output_path = os.path.join(output_dir, safe_filename)
+    
     # 保存附件
-    output_path = os.path.join(output_dir, filename)
     with open(output_path, 'wb') as f:
         f.write(attach.payload)
     
     # 根据类型提取文本
     content = None
-    lower_name = filename.lower()
+    lower_name = safe_filename.lower()
     
     if lower_name.endswith('.docx'):
         content = extract_text_from_docx(output_path)
@@ -159,11 +235,13 @@ def process_attachment(attach, output_dir):
         content = extract_text_from_pptx(output_path)
     elif lower_name.endswith('.pdf'):
         content = extract_text_from_pdf(output_path)
+    else:
+        content = f"[不支持的文件类型：{lower_name.split('.')[-1]}]"
     
     return content, output_path
 
 
-def fetch_emails(account, days=1, since=None, until=None):
+def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
     """收取邮件"""
     emails = []
     
@@ -176,11 +254,16 @@ def fetch_emails(account, days=1, since=None, until=None):
         date_from = date_to - timedelta(days=days)
     
     try:
-        with MailBox(account['imap_server'], port=int(account.get('imap_port', 993)), 
-                     ssl=True).login(account['email'], account['auth_code']) as mailbox:
+        with MailBox(account['imap_server'], port=int(account.get('imap_port', 993))).login(account['email'], account['auth_code']) as mailbox:
             
-            # 搜索日期范围内的邮件
-            criteria = f'SINCE "{date_from.strftime("%d-%b-%Y")}"'
+            # 使用 imap_tools 的 AND 条件搜索日期范围
+            if since and until:
+                date_from = datetime.strptime(since, '%Y-%m-%d').date()
+                date_to = datetime.strptime(until, '%Y-%m-%d').date()
+                criteria = AND(date_gte=date_from, date_lte=date_to)
+            else:
+                date_from = (datetime.now() - timedelta(days=days)).date()
+                criteria = AND(date_gte=date_from)
             
             for msg in mailbox.fetch(criteria, reverse=True):
                 # 跳过自己发送的邮件
@@ -198,18 +281,30 @@ def fetch_emails(account, days=1, since=None, until=None):
                     'account': account['email']
                 }
                 
-                # 处理附件
+                # 处理附件（下载并解析内容）
                 for attach in msg.attachments:
-                    email_data['attachments'].append({
+                    attach_info = {
                         'filename': attach.filename,
                         'content_type': attach.content_type,
-                        'size': len(attach.payload) if attach.payload else 0
-                    })
+                        'size': len(attach.payload) if attach.payload else 0,
+                        'content': None,
+                        'path': None
+                    }
+                    
+                    # 如果有输出目录，下载并解析附件
+                    if output_dir:
+                        content, path = process_attachment(attach, output_dir)
+                        attach_info['content'] = content
+                        attach_info['path'] = path
+                    
+                    email_data['attachments'].append(attach_info)
                 
                 emails.append(email_data)
     
     except Exception as e:
+        import traceback
         print(f"❌ 邮箱 {account['email']} 连接失败：{e}")
+        traceback.print_exc()
         return []
     
     return emails
@@ -226,10 +321,12 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
     # 概览
     total = len(emails)
     with_attachments = sum(1 for e in emails if e['attachments'])
+    total_attachments = sum(len(e['attachments']) for e in emails)
     
     summary.append("## 概览")
     summary.append(f"- 总邮件数：{total}")
-    summary.append(f"- 含附件：{with_attachments}\n")
+    summary.append(f"- 含附件邮件：{with_attachments}")
+    summary.append(f"- 附件总数：{total_attachments}\n")
     
     # 重点邮件（带附件的优先）
     summary.append("## 重点邮件\n")
@@ -238,26 +335,31 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
         summary.append(f"### {idx}. {email['subject'] or '(无主题)'}")
         summary.append(f"**发件人**: {email['from']}")
         summary.append(f"**时间**: {email['date'].strftime('%Y-%m-%d %H:%M')}")
+        summary.append(f"**收件人**: {email['to']}\n")
         
-        # 附件信息
-        if email['attachments']:
-            attach_list = ', '.join([a['filename'] for a in email['attachments']])
-            summary.append(f"**附件**: {attach_list}")
-            
-            # 如果有输出目录，处理附件内容
-            if output_dir and include_attachments:
-                os.makedirs(output_dir, exist_ok=True)
-                account = {'email': email['account'], 'imap_server': '', 'auth_code': ''}
-                # 这里需要重新获取附件内容，简化处理
-                summary.append("\n_附件内容需在完整模式下读取_")
-        
-        # 邮件正文摘要（前 200 字）
-        text = email['text'][:500].strip() if email['text'] else ''
+        # 邮件正文摘要
+        text = email['text'][:800].strip() if email['text'] else ''
         if text:
             # 清理 HTML 标签
             text = re.sub(r'<[^>]+>', '', text)
-            text = text[:200] + '...' if len(text) > 200 else text
-            summary.append(f"\n**摘要**: {text}\n")
+            text = re.sub(r'\n\s*\n', '\n\n', text)  # 清理多余空行
+            summary.append(f"**正文摘要**:\n{text}\n")
+        
+        # 附件信息和内容
+        if email['attachments']:
+            summary.append("**附件详情**:\n")
+            for att_idx, att in enumerate(email['attachments'], 1):
+                summary.append(f"  **{att_idx}. {att['filename']}** ({format_size(att['size'])})")
+                
+                if att['content']:
+                    # 显示附件内容摘要（前 500 字）
+                    content_preview = att['content'][:500]
+                    if len(att['content']) > 500:
+                        content_preview += "\n  ...(内容过长，已截断)"
+                    summary.append(f"\n  **内容摘要**:\n  ```\n  {content_preview}\n  ```\n")
+                elif att['path']:
+                    summary.append(f"\n  _文件已保存：{att['path']}_\n")
+                summary.append("\n")
         
         summary.append("---\n")
     
@@ -284,7 +386,8 @@ def main():
     args = parser.parse_args()
     
     # 加载凭证
-    workspace_dir = Path(__file__).parent.parent.parent
+    # skills/aliyun-mail/lib/fetch_emails.py -> workspace
+    workspace_dir = Path(__file__).parent.parent.parent.parent
     cred_file = workspace_dir / '.credentials' / 'aliyun-mail.md'
     
     if not cred_file.exists():
@@ -300,27 +403,25 @@ def main():
     
     print(f"📬 找到 {len(accounts)} 个邮箱账户")
     
-    # 收取所有邮箱的邮件
-    all_emails = []
-    for account in accounts:
-        print(f"\n正在收取 {account['email']} 的邮件...")
-        emails = fetch_emails(
-            account,
-            days=args.days,
-            since=args.since,
-            until=args.until
-        )
-        print(f"  ✓ 收取 {len(emails)} 封邮件")
-        all_emails.extend(emails)
-    
-    print(f"\n总计：{len(all_emails)} 封邮件")
-    
     # 根据动作处理
     if args.action == 'test':
         print("\n✅ 邮箱连接测试成功")
         return
     
     if args.action == 'list':
+        all_emails = []
+        for account in accounts:
+            print(f"\n正在收取 {account['email']} 的邮件...", file=sys.stderr)
+            emails = fetch_emails(
+                account,
+                days=args.days,
+                since=args.since,
+                until=args.until,
+                output_dir=None
+            )
+            print(f"  ✓ 收取 {len(emails)} 封邮件", file=sys.stderr)
+            all_emails.extend(emails)
+        
         for email in all_emails:
             print(f"\n{email['date'].strftime('%Y-%m-%d %H:%M')} | {email['from']} | {email['subject']}")
             if email['attachments']:
@@ -335,27 +436,48 @@ def main():
         return
     
     if args.action == 'summary':
+        # 使用 email-reports 目录，而不是 memory
+        output_dir = workspace_dir / 'email-reports' / datetime.now().strftime('%Y-%m-%d')
+        os.makedirs(output_dir, exist_ok=True)
+        
+        print(f"\n📂 附件保存目录：{output_dir}")
+        
+        # 收取邮件并下载附件
+        all_emails = []
+        for account in accounts:
+            print(f"\n正在收取 {account['email']} 的邮件...")
+            emails = fetch_emails(
+                account,
+                days=args.days,
+                since=args.since,
+                until=args.until,
+                output_dir=str(output_dir) if args.include_attachments else None
+            )
+            print(f"  ✓ 收取 {len(emails)} 封邮件")
+            all_emails.extend(emails)
+        
+        print(f"\n总计：{len(all_emails)} 封邮件")
+        
+        # 生成总结
         summary = generate_summary(
             all_emails,
             include_attachments=args.include_attachments,
-            output_dir=args.output_dir if args.include_attachments else None
+            output_dir=str(output_dir) if args.include_attachments else None
         )
         print("\n" + "="*60)
         print(summary)
         print("="*60)
         
-        # 保存到文件
-        output_file = workspace_dir / 'memory' / f"{datetime.now().strftime('%Y-%m-%d')}-email-summary.md"
-        output_file.parent.mkdir(exist_ok=True)
+        # 保存到 email-reports 目录
+        output_file = output_dir / f"{datetime.now().strftime('%Y-%m-%d')}-邮件日报.md"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(summary)
         print(f"\n💾 总结已保存：{output_file}")
         
-        # 发送到飞书（待实现）
+        # 发送到飞书
         if args.send_feishu and args.chat_id:
             print(f"\n📤 发送到飞书：{args.chat_id}")
-            # 这里调用飞书 API
-            print("飞书发送功能开发中...")
+            send_to_feishu(summary, args.chat_id)
 
 
 if __name__ == '__main__':

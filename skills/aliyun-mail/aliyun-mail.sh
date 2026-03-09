@@ -5,7 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+WORKSPACE_DIR="$HOME/.openclaw/workspace"
 CREDENTIALS_FILE="$WORKSPACE_DIR/.credentials/aliyun-mail.md"
 PYTHON_LIB="$SCRIPT_DIR/lib"
 
@@ -23,16 +23,17 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 check_dependencies() {
     local missing=()
     
-    for pkg in imap-tools python-docx openpyxl python-pptx pypdf2; do
-        if ! python3 -c "import $(echo $pkg | tr - _)" 2>/dev/null; then
-            missing+=("$pkg")
-        fi
-    done
+    # 检查 Python 包（使用正确的导入名）
+    python3 -c "from imap_tools import MailBox" 2>/dev/null || missing+=("imap-tools")
+    python3 -c "import docx" 2>/dev/null || missing+=("python-docx")
+    python3 -c "import openpyxl" 2>/dev/null || missing+=("openpyxl")
+    python3 -c "import pptx" 2>/dev/null || missing+=("python-pptx")
+    python3 -c "from pypdf import PdfReader" 2>/dev/null || missing+=("pypdf")
     
     if [ ${#missing[@]} -gt 0 ]; then
         log_warn "缺少 Python 依赖：${missing[*]}"
         log_info "运行以下命令安装："
-        echo "  pip3 install ${missing[*]}"
+        echo "  pip3 install --break-system-packages ${missing[*]}"
         return 1
     fi
 }

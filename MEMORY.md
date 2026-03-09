@@ -1,6 +1,6 @@
 # MEMORY.md - 长期记忆
 
-_最后更新：2026-03-08 06:00_
+_最后更新：2026-03-09 06:00_
 
 ## 技能与工具
 
@@ -80,28 +80,26 @@ _最后更新：2026-03-08 06:00_
   - `FEATURE_REQUESTS.md` - 功能请求
 
 ### Aliyun Mail (阿里云邮箱) 📧
-- 状态：🔧 技能已创建，待配置凭证
+- 状态：✅ 已配置并投入使用
 - 位置：`workspace/skills/aliyun-mail/`
 - 功能：多邮箱 IMAP 收取、附件解析 (Word/Excel/PPT/PDF)、每日总结
-- 依赖：`pip3 install imap-tools python-docx openpyxl python-pptx pypdf2`
-- 配置：`.credentials/aliyun-mail.md` (参考模板：`.credentials/aliyun-mail.md.template`)
-- 授权码指南：`skills/aliyun-mail/README-授权码.md`
+- 依赖：`pip3 install --break-system-packages imap-tools python-docx openpyxl python-pptx pypdf`
+- 配置邮箱：`zhibin@cheersucloud.com` (企业邮箱)
+- 凭证：`.credentials/aliyun-mail.md` (chmod 600)
+- 定时任务：每日 8:00 AM 自动运行 (`openclaw cron list` 查看)
 - 用法：
   ```bash
-  # 安装依赖
-  bash skills/aliyun-mail/aliyun-mail.sh install
+  # 手动收取昨日邮件
+  python3 skills/aliyun-mail/lib/fetch_emails.py --action summary --days 1
+  
+  # 收取指定日期范围
+  python3 skills/aliyun-mail/lib/fetch_emails.py --action summary --since 2026-03-07 --until 2026-03-08
   
   # 测试连接
-  bash skills/aliyun-mail/aliyun-mail.sh test
-  
-  # 收取昨日邮件并总结
-  bash skills/aliyun-mail/aliyun-mail.sh summary --days 1
-  
-  # 配置每日 8 点自动任务
-  openclaw cron create email-daily-summary \
-    --schedule "0 8 * * *" \
-    --command "cd /Users/a123456/.openclaw/workspace && bash skills/aliyun-mail/aliyun-mail.sh summary --days 1"
+  python3 skills/aliyun-mail/lib/fetch_emails.py --action test
   ```
+- 输出：`memory/YYYY-MM-DD-email-summary.md`
+- 待完善：附件内容读取、飞书自动发送
 
 ## 重要经验
 1. 每天早上先检查 `memory/` 目录和 `MEMORY.md`
