@@ -310,11 +310,28 @@ def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
     return emails
 
 
-def classify_email(email):
-    """智能分类邮件"""
+def is_user_recipient(email, user_email='zhibin@cheersucloud.com'):
+    """检查用户是否是收件人（而非仅抄送）"""
+    to_field = (email.get('to') or '').lower()
+    
+    # 检查收件人字段是否包含用户邮箱
+    user_email_lower = user_email.lower()
+    if user_email_lower in to_field:
+        return True
+    
+    # 也检查用户名部分（如"支彬"）
+    user_names = ['支彬', 'zhibin', '支']
+    return any(name in to_field for name in user_names)
+
+
+def classify_email(email, user_email='zhibin@cheersucloud.com'):
+    """智能分类邮件 - 考虑收件人/抄送关系"""
     subject = (email.get('subject') or '').lower()
     text = (email.get('text') or '').lower()
     content = subject + ' ' + text
+    
+    # 检查是否是收件人（需要处理）还是抄送（仅需知悉）
+    is_to = is_user_recipient(email, user_email)
     
     # 重要邮件关键词
     important_keywords = [
@@ -324,52 +341,88 @@ def classify_email(email):
         '账单', 'invoice', '结算', 'budget', '预算'
     ]
     
-    # 行动项关键词
-    action_keywords = [
-        '请', '需要', 'need', '必须', 'must', '应该', 'should',
-        '安排', 'arrange', '准备', 'prepare', '提交', 'submit',
-        '回复', 'reply', '反馈', 'feedback', '处理', 'handle',
-        '联系', 'contact', '对接', 'coordinate', '提供', 'provide'
+    # 行动项关键词（针对收件人的）
+    action_to_me = [
+        '请确认', '请核对', '请审批', '请处理', '请回复',
+        '需要你', '请您', '请贵司', '请贵部门',
+        '盼复', '望确认', '请知悉并', '请协助'
+    ]
+    
+    # 一般行动词（可能是其他人的任务）
+    action_general = [
+        '请', '需要', '必须', '应该', '安排', '准备',
+        '提交', '回复', '反馈', '处理', '联系', '提供', '对接', '核实'
     ]
     
     # 通知类关键词
     notification_keywords = [
         '通知', 'notice', '提醒', 'reminder', '会议', 'meeting',
         '日程', 'schedule', '邀请', 'invitation', '系统', 'system',
-        '自动', 'auto', '订阅', 'subscription', '报告', 'report'
+        '自动', 'auto', '订阅', 'subscription', '报告', 'report',
+        '知悉', '知晓', '报备', '备案'
     ]
     
     # 检查关键词
     important_score = sum(1 for kw in important_keywords if kw in content)
-    action_score = sum(1 for kw in action_keywords if kw in content)
+    action_to_me_score = sum(1 for kw in action_to_me if kw in content)
+    action_general_score = sum(1 for kw in action_general if kw in content)
     notification_score = sum(1 for kw in notification_keywords if kw in content)
     
-    # 分类逻辑
-    if important_score >= 2 or (important_score >= 1 and action_score >= 2):
-        return 'important', '重要事项'
-    elif action_score >= 2:
-        return 'action', '待办事项'
-    elif notification_score >= 2:
-        return 'notification', '通知'
+    # 分类逻辑（考虑收件人/抄送）
+    if not is_to:
+        # 抄送邮件 - 通常仅需知悉
+        if important_score >= 3:
+            return 'important_cc', '重要抄送'
+        elif notification_score >= 2:
+            return 'notification', '通知'
+        else:
+            return 'cc_only', '抄送知悉'
     else:
-        return 'normal', '普通邮件'
+        # 收件人邮件 - 可能需要处理
+        if action_to_me_score >= 1 or (important_score >= 1 and action_general_score >= 2):
+            return 'action', '待办事项'
+        elif important_score >= 2:
+            return 'important', '重要事项'
+        elif action_general_score >= 2:
+            return 'action', '待办事项'
+        elif notification_score >= 2:
+            return 'notification', '通知'
+        else:
+            return 'normal', '普通邮件'
 
 
-def extract_action_items(email):
-    """从邮件中提取行动项"""
+def extract_action_items(email, user_email='zhibin@cheersucloud.com'):
+    """从邮件中提取行动项，并识别是否指派给用户"""
     text = email.get('text', '')
     actions = []
+    assigned_to_me = False
     
     # 清理 HTML 和邮件头
     text = re.sub(r'<[^>]+>', '', text)
     text = re.sub(r'主 题：.*?\n', '', text)  # 移除主题行
     text = re.sub(r'发件人：.*?发送时间：.*?(?=\n\n|\Z)', '', text, flags=re.DOTALL)  # 移除引用头
+    text = re.sub(r'-{3,}.*', '', text, flags=re.DOTALL)  # 移除签名分隔线
     
-    # 提取包含行动词的句子
-    action_verbs = ['请', '需要', '必须', '应该', '安排', '准备', '提交', '回复', '反馈', '处理', '联系', '提供', '确认', '对接', '核实']
+    # 检查是否是收件人
+    is_to = is_user_recipient(email, user_email)
+    
+    # 明确指派给"我"的行动词
+    action_to_me_patterns = [
+        r'请 [您你] 确认', r'请 [您你] 核对', r'请 [您你] 审批',
+        r'请 [您你] 处理', r'请 [您你] 回复', r'需要 [您你]',
+        r'请贵司', r'请贵部门', r'盼复', r'望确认',
+        r'请知悉并 (?:处理 | 回复 | 确认)'
+    ]
+    
+    # 一般行动词（可能是其他人的任务）
+    action_general = [
+        '请', '需要', '必须', '应该', '安排', '准备',
+        '提交', '回复', '反馈', '处理', '联系', '提供', '对接', '核实'
+    ]
     
     # 按句子分割
     sentences = re.split(r'[。！？.!?\n]', text)
+    
     for sentence in sentences:
         sentence = sentence.strip()
         
@@ -381,26 +434,37 @@ def extract_action_items(email):
         if sentence.startswith('主 题') or sentence.startswith('发件人') or sentence.startswith('Hi ') or '@' in sentence:
             continue
         
-        # 检查是否包含行动词
-        if any(verb in sentence for verb in action_verbs):
+        # 检查是否明确指派给"我"
+        is_assigned = any(re.search(pattern, sentence) for pattern in action_to_me_patterns)
+        
+        if is_assigned:
+            assigned_to_me = True
             # 提取日期信息
             date_match = re.search(r'(\d{1,2}月\d{1,2}日 [上下午 ]|\d{1,2}/\d{1,2}|今天 | 明天 | 下周一 | 本周五)', sentence)
             if date_match:
                 sentence = f"⏰ {date_match.group()}：{sentence}"
-            
-            actions.append(sentence)
+            actions.append(('me', sentence))
+        elif is_to and any(verb in sentence for verb in action_general):
+            # 是收件人且包含行动词，可能是我的任务
+            date_match = re.search(r'(\d{1,2}月\d{1,2}日 [上下午 ]|\d{1,2}/\d{1,2}|今天 | 明天 | 下周一 | 本周五)', sentence)
+            if date_match:
+                sentence = f"⏰ {date_match.group()}：{sentence}"
+            actions.append(('maybe_me', sentence))
     
-    # 去重（避免相似句子）
+    # 去重
     unique_actions = []
     seen = set()
-    for action in actions:
-        # 用前 30 个字符作为去重 key
+    for assignee, action in actions:
         key = action[:30]
         if key not in seen:
             seen.add(key)
-            unique_actions.append(action)
+            unique_actions.append((assignee, action))
     
-    return unique_actions[:3]  # 最多返回 3 个行动项
+    # 优先返回指派给我的任务
+    my_actions = [a for assignee, a in unique_actions if assignee == 'me']
+    maybe_actions = [a for assignee, a in unique_actions if assignee == 'maybe_me']
+    
+    return my_actions[:3] + maybe_actions[:2], len(my_actions) > 0  # 最多 5 个，优先我的任务
 
 
 def summarize_email_content(email, max_length=300):
@@ -448,15 +512,21 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
     # 分类邮件
     important_emails = []
     action_emails = []
+    important_cc_emails = []  # 重要抄送
+    cc_only_emails = []  # 仅抄送知悉
     notification_emails = []
     normal_emails = []
     
     for email in emails:
-        category, _ = classify_email(email)
+        category, label = classify_email(email)
         if category == 'important':
             important_emails.append(email)
         elif category == 'action':
             action_emails.append(email)
+        elif category == 'important_cc':
+            important_cc_emails.append(email)
+        elif category == 'cc_only':
+            cc_only_emails.append(email)
         elif category == 'notification':
             notification_emails.append(email)
         else:
@@ -465,45 +535,79 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
     # 概览
     summary.append("## 📊 概览")
     summary.append(f"- 总邮件数：**{len(emails)}**")
-    if important_emails:
-        summary.append(f"- 🔴 重要事项：**{len(important_emails)}**")
-    if action_emails:
-        summary.append(f"- 📋 待办事项：**{len(action_emails)}**")
+    
+    # 收件人邮件（需要关注）
+    to_count = len(important_emails) + len(action_emails) + len(normal_emails)
+    if to_count > 0:
+        summary.append(f"- 📬 收件人邮件：**{to_count}**")
+        if important_emails:
+            summary.append(f"  - 🔴 重要：**{len(important_emails)}**")
+        if action_emails:
+            summary.append(f"  - ⚡ 待办：**{len(action_emails)}**")
+    
+    # 抄送邮件（仅需知悉）
+    cc_count = len(cc_only_emails) + len(important_cc_emails)
+    if cc_count > 0:
+        summary.append(f"- 📧 抄送邮件：**{cc_count}** (仅需知悉)")
+        if important_cc_emails:
+            summary.append(f"  - 🔴 重要抄送：**{len(important_cc_emails)}**")
+    
     if notification_emails:
         summary.append(f"- 📢 通知：**{len(notification_emails)}**")
-    if normal_emails:
-        summary.append(f"- 📮 普通邮件：**{len(normal_emails)}**")
     
-    # 行动项汇总（最重要）
-    all_actions = []
-    for email in important_emails + action_emails:
-        actions = extract_action_items(email)
+    # 行动项汇总（最重要）- 只提取收件人邮件的行动项
+    my_actions = []
+    maybe_actions = []
+    cc_actions = []
+    
+    for email in important_emails + action_emails + normal_emails:
+        is_to = is_user_recipient(email)
+        actions, has_my_tasks = extract_action_items(email)
+        
         if actions:
-            all_actions.append({
+            item = {
                 'from': email['from'],
                 'subject': email['subject'],
-                'actions': actions
-            })
+                'actions': actions,
+                'has_my_tasks': has_my_tasks
+            }
+            
+            if is_to and has_my_tasks:
+                my_actions.append(item)
+            elif is_to:
+                maybe_actions.append(item)
+            else:
+                cc_actions.append(item)
     
-    if all_actions:
-        summary.append("\n## ⚡ 需要行动\n")
-        for item in all_actions:
+    # 显示明确指派给我的任务
+    if my_actions:
+        summary.append("\n## ⚡ 需要我处理\n")
+        for item in my_actions:
             summary.append(f"**{item['subject'] or '(无主题)'}** ({item['from']})")
             for action in item['actions']:
                 summary.append(f"- {action}")
             summary.append("")
     
-    # 重要邮件
+    # 可能是我的任务（收件人但行动项不明确）
+    if maybe_actions and not my_actions:
+        summary.append("\n## 📋 可能需要处理\n")
+        for item in maybe_actions:
+            summary.append(f"**{item['subject'] or '(无主题)'}** ({item['from']})")
+            for action in item['actions']:
+                summary.append(f"- {action}")
+            summary.append("")
+    
+    # 重要邮件（收件人）
     if important_emails:
-        summary.append("\n## 🔴 重要事项\n")
+        summary.append("\n## 🔴 重要事项（收件人）\n")
         for email in important_emails:
             content_summary = summarize_email_content(email)
             if content_summary:
                 summary.append(f"**{email['subject'] or '(无主题)'}**\n")
-                summary.append(f"发件人：{email['from']} | 时间：{email['date'].strftime('%H:%M')}\n")
+                summary.append(f"发件人：{email['from']} | 时间：{email['date'].strftime('%H:%M')} | 📬 收件人\n")
                 summary.append(f"{content_summary}\n")
                 
-                # 附件信息（仅显示文件名和数量）
+                # 附件信息
                 if email['attachments']:
                     att_names = [a['filename'] for a in email['attachments'][:3]]
                     att_text = f"{len(email['attachments'])} 个附件"
@@ -513,6 +617,16 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
                         att_text = f"附件：{', '.join(att_names)}"
                     summary.append(f"📎 {att_text}\n")
                 summary.append("")
+    
+    # 重要抄送
+    if important_cc_emails:
+        summary.append("\n## 🔴 重要抄送（仅需知悉）\n")
+        for email in important_cc_emails:
+            content_summary = summarize_email_content(email, max_length=150)
+            if content_summary:
+                summary.append(f"- **{email['subject'] or '(无主题)'}** ({email['from']}) 📧 抄送\n")
+                summary.append(f"  {content_summary}\n")
+        summary.append("")
     
     # 待办事项
     if action_emails and not important_emails:
@@ -534,12 +648,22 @@ def generate_summary(emails, include_attachments=True, output_dir=None):
     
     # 普通邮件（精简列表）
     if normal_emails:
-        summary.append("\n## 📮 其他邮件\n")
+        summary.append("\n## 📮 其他邮件（收件人）\n")
         for email in normal_emails[:5]:  # 最多显示 5 个
             att_icon = "📎" if email['attachments'] else ""
-            summary.append(f"- {att_icon} {email['subject'] or '(无主题)'} - {email['from']}")
+            summary.append(f"- {att_icon} {email['subject'] or '(无主题)'} - {email['from']} 📬")
         if len(normal_emails) > 5:
-            summary.append(f"- ... 还有 {len(normal_emails) - 5} 封邮件")
+            summary.append(f"- ... 还有 {len(normal_emails) - 5} 封收件人邮件")
+        summary.append("")
+    
+    # 抄送知悉（精简列表）
+    if cc_only_emails:
+        summary.append("\n## 📧 抄送知悉\n")
+        for email in cc_only_emails[:5]:  # 最多显示 5 个
+            att_icon = "📎" if email['attachments'] else ""
+            summary.append(f"- {att_icon} {email['subject'] or '(无主题)'} - {email['from']} 📧")
+        if len(cc_only_emails) > 5:
+            summary.append(f"- ... 还有 {len(cc_only_emails) - 5} 封抄送邮件")
         summary.append("")
     
     # 附件汇总
