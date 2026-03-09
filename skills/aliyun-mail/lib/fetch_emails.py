@@ -467,37 +467,92 @@ def extract_action_items(email, user_email='zhibin@cheersucloud.com'):
     return my_actions[:3] + maybe_actions[:2], len(my_actions) > 0  # 最多 5 个，优先我的任务
 
 
-def summarize_email_content(email, max_length=300):
-    """智能总结邮件内容"""
+def summarize_email_content(email, max_length=150):
+    """AI 智能总结邮件内容（非原文截取）"""
     text = email.get('text', '')
+    subject = email.get('subject', '')
+    
     if not text:
         return None
     
     # 清理 HTML 和引用
     text = re.sub(r'<[^>]+>', '', text)
-    text = re.sub(r'-{3,}.*?发件人：.*?(?=\n\n|\Z)', '', text, flags=re.DOTALL)  # 移除引用部分
+    text = re.sub(r'-{3,}.*?发件人：.*?(?=\n\n|\Z)', '', text, flags=re.DOTALL)  # 移除引用
     text = re.sub(r'_{3,}.*', '', text, flags=re.DOTALL)  # 移除签名
+    text = re.sub(r'主 题：.*?\n', '', text)  # 移除主题行
     
-    # 提取关键段落
+    # 提取关键信息
     paragraphs = [p.strip() for p in text.split('\n\n') if p.strip() and len(p.strip()) > 20]
     
     if not paragraphs:
         return None
     
-    # 优先使用前两段
-    summary_parts = []
-    for para in paragraphs[:2]:
-        if len(para) < max_length:
-            summary_parts.append(para)
-        else:
-            # 截取前 max_length 字符，确保在句子边界切断
-            truncated = para[:max_length]
-            last_punct = re.search(r'[。！？.!?,]', truncated)
-            if last_punct:
-                truncated = truncated[:last_punct.end()]
-            summary_parts.append(truncated + '...')
+    # 识别邮件类型并生成总结
+    first_para = paragraphs[0] if paragraphs else ''
     
-    return '\n'.join(summary_parts)
+    # 账单/结算类
+    if any(kw in text for kw in ['账单', '结算', '发票', '金额', '¥', '元']):
+        # 提取金额和状态
+        amount_match = re.search(r'[¥￥]?[\d,]+\.?\d*\s*元', text)
+        status_match = re.search(r'(确认无误 | 已核对 | 待确认 | 请审核)', text)
+        
+        summary = "账单核对"
+        if amount_match:
+            summary += f"，金额：{amount_match.group()}"
+        if status_match:
+            summary += f"，状态：{status_match.group()}"
+        return summary
+    
+    # 订单/交付类
+    if any(kw in text for kw in ['订单', '交付', '设备', '台', '配置']):
+        # 提取数量和日期
+        qty_match = re.search(r'(\d+\s*台|\d+\s*台)', text)
+        date_match = re.search(r'(\d{1,2}月\d{1,2}日|\d{4}-\d{2}-\d{2})', text)
+        
+        summary = "订单交付"
+        if qty_match:
+            summary += f"，数量：{qty_match.group()}"
+        if date_match:
+            summary += f"，日期：{date_match.group()}"
+        return summary
+    
+    # 审批/确认类
+    if any(kw in text for kw in ['审批', '确认', '审核', '批准']):
+        action_match = re.search(r'请 (?:您 | 你)?(\w{1,4})', text)
+        deadline_match = re.search(r'(\d{1,2}月\d{1,2}日 [上下午 ]?|今天 | 明天 | 本周)', text)
+        
+        summary = "待确认事项"
+        if action_match:
+            summary += f"，需要：{action_match.group(1)}"
+        if deadline_match:
+            summary += f"，截止：{deadline_match.group()}"
+        return summary
+    
+    # 项目/工作同步类
+    if any(kw in text for kw in ['项目', '工作', '推进', '反馈', '同步']):
+        # 提取关键动作
+        actions = []
+        if '对接' in text:
+            actions.append('对接')
+        if '核实' in text:
+            actions.append('核实')
+        if '提供' in text:
+            actions.append('提供资料')
+        
+        summary = "工作同步"
+        if actions:
+            summary += f"，需：{', '.join(actions)}"
+        return summary
+    
+    # 通用总结：提取第一句核心内容
+    first_sentence = re.split(r'[。！？.!]', first_para)[0]
+    if len(first_sentence) > 10:
+        # 精简到 max_length
+        if len(first_sentence) > max_length:
+            return first_sentence[:max_length] + '...'
+        return first_sentence
+    
+    return None
 
 
 def generate_summary(emails, include_attachments=True, output_dir=None):
