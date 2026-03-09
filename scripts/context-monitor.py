@@ -59,20 +59,20 @@ def save_context_state(state):
 
 def estimate_context_usage():
     """估算当前 Context 使用率"""
-    # 简化版本：检查最近的会话记录
+    # 检查最近的会话记录
     session_dir = Path.home() / '.openclaw' / 'agents' / 'main' / 'sessions'
     
     if not session_dir.exists():
-        return {'estimated': True, 'usage_percent': 0.0, 'message_count': 0}
+        return {'estimated': True, 'usage_percent': 0.0, 'message_count': 0, 'tokens': 0}
     
     # 找到最新的会话文件
     session_files = list(session_dir.glob('*.jsonl'))
     if not session_files:
-        return {'estimated': True, 'usage_percent': 0.0, 'message_count': 0}
+        return {'estimated': True, 'usage_percent': 0.0, 'message_count': 0, 'tokens': 0}
     
     latest_session = max(session_files, key=lambda f: f.stat().st_mtime)
     
-    # 计算消息数量
+    # 计算消息数量和字符数
     message_count = 0
     total_chars = 0
     
@@ -89,9 +89,10 @@ def estimate_context_usage():
             except:
                 continue
     
-    # 粗略估算：每个中文字符≈1.5 token，每个英文字符≈0.25 token
-    estimated_tokens = total_chars * 0.5
-    token_limit = 128000  # 假设限制
+    # 使用 OpenClaw 的 token 限制 (1M tokens)
+    # 注意：这是估算值，实际 token 数由 OpenClaw 内部统计
+    token_limit = 1000000  # 1M tokens
+    estimated_tokens = total_chars * 0.6  # 粗略估算：1 字符≈0.6 token
     
     usage_percent = estimated_tokens / token_limit
     
@@ -100,13 +101,28 @@ def estimate_context_usage():
         'usage_percent': usage_percent,
         'message_count': message_count,
         'total_chars': total_chars,
+        'estimated_tokens': int(estimated_tokens),
+        'token_limit': token_limit,
         'session_file': str(latest_session)
     }
 
 
-def should_cleanup(usage_percent):
-    """判断是否需要清理"""
-    return usage_percent >= CONTEXT_WARNING_THRESHOLD
+def should_cleanup(usage_percent, message_count):
+    """判断是否需要清理
+    
+    使用双重判断：
+    1. Context 使用率超过阈值
+    2. 或者消息数量超过阈值（每条消息平均约 500 tokens）
+    """
+    # 使用率判断
+    if usage_percent >= CONTEXT_WARNING_THRESHOLD:
+        return True
+    
+    # 消息数量判断（经验值：300 条消息约等于 150k tokens）
+    if message_count >= 300:
+        return True
+    
+    return False
 
 
 def extract_key_points_from_session():
@@ -203,16 +219,22 @@ def cleanup_context():
     status = estimate_context_usage()
     usage_percent = status.get('usage_percent', 0.0)
     
-    print(f"📊 当前 Context 使用率：{usage_percent:.1%}")
+    print(f"📊 Context 使用率估算：{usage_percent:.2%}")
+    print(f"   估算 Tokens: {status.get('estimated_tokens', 0):,} / {status.get('token_limit', 1000000):,}")
     print(f"   消息数：{status.get('message_count', 0)}")
     print(f"   字符数：{status.get('total_chars', 0):,}")
+    print(f"\n⚠️  注：这是估算值，实际值请以 /status 命令为准")
+    print(f"⚠️  OpenClaw 内部统计的 Context 限制可能不同")
     
     # 加载状态
     state = load_context_state()
     
     # 判断是否需要清理
-    if not should_cleanup(usage_percent):
-        print(f"✅ Context 使用率正常 (<{CONTEXT_WARNING_THRESHOLD:.0%})")
+    message_count = status.get('message_count', 0)
+    if not should_cleanup(usage_percent, message_count):
+        print(f"✅ Context 使用率正常")
+        print(f"   使用率：{usage_percent:.1%} < {CONTEXT_WARNING_THRESHOLD:.0%}")
+        print(f"   消息数：{message_count} < 300")
         return
     
     # 需要清理
