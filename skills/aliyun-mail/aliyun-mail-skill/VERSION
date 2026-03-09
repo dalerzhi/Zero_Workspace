@@ -1,0 +1,11 @@
+aliyun-mail-skill
+版本：2.0
+日期：2026-03-09
+包含文件:
+- SKILL.md (主文档)
+- README.md (详细指南)
+- aliyun-mail.sh (主脚本)
+- lib/ (Python 库)
+- install.sh (安装脚本)
+- .email-credentials.example (邮箱模板)
+- .feishu-credentials.example (飞书模板)

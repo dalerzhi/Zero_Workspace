@@ -1,0 +1,15 @@
+# 敏感信息
+.email-credentials
+.feishu-credentials
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 报告文件
+email-reports/
+
+# 临时文件
+*.tmp
+*.log
