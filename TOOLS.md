@@ -87,4 +87,33 @@ python3 scripts/feishu-voice.py "文本" --voice-id 8316cdf1
 
 ---
 
+### 📷 摄像头配置 ⭐
+
+**Insta360 Link 2 (USB 摄像头)** ✅
+- **连接方式**: USB 直连（macOS 原生支持）
+- **调用命令**: 
+  ```bash
+  # 查看可用摄像头列表
+  imagesnap -l
+  
+  # 拍摄照片
+  imagesnap -d "Insta360 Link 2" -q high [输出文件.jpg]
+  
+  # 默认摄像头拍摄
+  imagesnap -q high [输出文件.jpg]
+  ```
+- **可用设备** (通过 `imagesnap -l` 查看):
+  - `Insta360 Link 2` ← 主用摄像头
+  - `Insta360 Virtual Camera`
+  - `"Daler's iPhone"的相机` (备选)
+- **工具位置**: `/opt/homebrew/bin/imagesnap` (已安装)
+- **设备路径**: macOS USB 摄像头，无需 `/dev/video*` (Linux 方式)
+
+**注意**: 
+- `nodes camera_snap` 需要配对的节点设备（手机等），当前无配对设备
+- USB 摄像头直接用 `imagesnap` 命令调用
+- 拍摄后文件保存在 workspace 目录
+
+---
+
 Add whatever helps you do your job. This is your cheat sheet.

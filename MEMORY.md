@@ -1,6 +1,6 @@
 # MEMORY.md - 长期记忆
 
-_最后更新：2026-03-09 06:00_
+_最后更新：2026-03-10 06:46_
 
 ## 技能与工具
 
@@ -101,6 +101,28 @@ _最后更新：2026-03-09 06:00_
 - 输出：`memory/YYYY-MM-DD-email-summary.md`
 - 待完善：附件内容读取、飞书自动发送
 
+### Insta360 Link 2 (USB 摄像头) 📷 ⭐
+- **状态**: ✅ USB 直连，macOS 原生支持
+- **调用方式**: `imagesnap` CLI (已安装 `/opt/homebrew/bin/imagesnap`)
+- **查看设备**: `imagesnap -l`
+- **可用设备**:
+  - `Insta360 Link 2` ← 主用摄像头
+  - `Insta360 Virtual Camera`
+  - `"Daler's iPhone"的相机` (备选)
+- **拍摄命令**:
+  ```bash
+  # 使用 Insta360 Link 2 拍摄
+  imagesnap -d "Insta360 Link 2" -q high [输出文件.jpg]
+  
+  # 使用默认摄像头
+  imagesnap -q high [输出文件.jpg]
+  ```
+- **重要**: 
+  - `nodes camera_snap` 需要配对的节点设备（手机等），当前**无配对设备**
+  - USB 摄像头直接用 `imagesnap` 命令，无需节点配对
+  - 拍摄文件默认保存在 workspace 目录
+- **配置位置**: `workspace/TOOLS.md` (详细配置)
+
 ## 重要经验
 1. 每天早上先检查 `memory/` 目录和 `MEMORY.md`
 2. 飞书语音技能已经就绪，可以直接用
@@ -110,6 +132,7 @@ _最后更新：2026-03-09 06:00_
 6. ⚠️ OpenClaw 配置的环境变量不会传递到 exec，需要从 `~/.zshrc` 读取
 7. ⚠️ clawhub 安装常限流，用浏览器手动下载 zip
 8. ⚠️ inference.sh 域名被墙，需要代理或手动下载
+9. ⭐ **摄像头调用**: 用 `imagesnap` 命令 (USB 直连)，不是 `nodes camera_snap` (需要配对设备)
 
 ## 2026-03-09 - 自动整理
 
