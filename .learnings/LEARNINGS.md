@@ -237,3 +237,47 @@ _待补充_
 - Tags: auto-logged
 
 ---
+
+## [LRN-2026-03-10-1947] auto
+
+**Logged**: 2026-03-10T19:47:38+0800
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+Insta360 Link 2 摄像头配置集成 + TTS 音色迭代（于谦→小雨）
+
+### Details
+_待补充_
+
+### Suggested Action
+_待补充_
+
+### Metadata
+- Source: quick-log
+- Tags: auto-logged
+
+---
+
+## [LRN-2026-03-10-2017] auto
+
+**Logged**: 2026-03-10T20:17:34+0800
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+Insta360 Link 2 摄像头配置 + TTS 音色迭代（于谦→小雨）
+
+### Details
+_待补充_
+
+### Suggested Action
+_待补充_
+
+### Metadata
+- Source: quick-log
+- Tags: auto-logged
+
+---

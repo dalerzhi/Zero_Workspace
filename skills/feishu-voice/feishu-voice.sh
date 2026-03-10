@@ -5,13 +5,13 @@
 # Uses Noiz Cloud API for TTS generation (云端 API)
 # Default voices:
 #   Male:   96270d87 (故事讲述者 - 子轩)
-#   Female: d44f2ab4 (游戏少女 - 小雨)
+#   Female: 4f71a876 (故事讲述者 - 小雨 - 平静舒缓) ← Default
 
 set -e
 
 TEXT="$1"
 TARGET="${2:-}"
-VOICE_ID="${3:-d44f2ab4}"  # Default to female voice
+VOICE_ID="${3:-4f71a876}"  # Default to female voice (故事讲述者 - 小雨 - 平静舒缓)
 WORKSPACE="/Users/a123456/.openclaw/workspace"
 NOIZ_SCRIPT="$WORKSPACE/.agents/skills/tts/scripts/tts.sh"
 
@@ -19,7 +19,7 @@ if [ -z "$TEXT" ]; then
     echo "Usage: feishu-voice \"message text\" [target_user_id] [voice_id]"
     echo ""
     echo "Default voices:"
-    echo "  Female (default): d44f2ab4 - 游戏少女（小雨）"
+    echo "  Female (default): 4f71a876 - 故事讲述者（小雨）- 平静舒缓"
     echo "  Male:             96270d87 - 故事讲述者（子轩）"
     echo ""
     echo "More voices: curl https://noiz.ai/v1/voices"
