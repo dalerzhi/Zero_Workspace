@@ -424,16 +424,7 @@ def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
                 date_from = (datetime.now() - timedelta(days=days)).date()
                 criteria = AND(date_gte=date_from)
             
-            # 获取邮件总数用于进度显示
-            all_msgs = list(mailbox.fetch(criteria, reverse=True))
-            total_msgs = len(all_msgs)
-            print(f"📬 发现 {total_msgs} 封邮件，开始处理...")
-            
-            for idx, msg in enumerate(all_msgs, 1):
-                # 进度输出（每 5 封显示一次）
-                if idx % 5 == 0 or idx == total_msgs:
-                    print(f"📧 处理进度：{idx}/{total_msgs} ({idx*100//total_msgs}%)")
-                
+            for msg in mailbox.fetch(criteria, reverse=True):
                 # 跳过自己发送的邮件
                 if msg.from_ == account['email']:
                     continue
@@ -449,18 +440,7 @@ def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
                     'account': account['email']
                 }
                 
-                # 智能处理附件：根据邮件分类决定是否解析
-                # 1. 先分类邮件
-                category, _ = classify_email(email_data)
-                
-                # 2. 根据分类决定附件处理策略
-                # - action/important: 完整解析所有附件
-                # - important_cc: 只解析前 3 个附件
-                # - cc_only/notification: 只统计数量，不解析内容
-                should_parse_attachments = category in ['action', 'important']
-                should_limited_parse = category == 'important_cc'
-                
-                attach_count = 0
+                # 处理附件（只解析内容，不保存文件）
                 for attach in msg.attachments:
                     attach_info = {
                         'filename': attach.filename,
@@ -470,13 +450,11 @@ def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
                     }
                     
                     # 解析附件内容（不保存）
-                    if should_parse_attachments or (should_limited_parse and attach_count < 3):
-                        attach_result = process_attachment(attach)
-                        if attach_result:
-                            attach_info['summary'] = attach_result.get('summary')
+                    attach_result = process_attachment(attach)
+                    if attach_result:
+                        attach_info['summary'] = attach_result.get('summary')
                     
                     email_data['attachments'].append(attach_info)
-                    attach_count += 1
                 
                 emails.append(email_data)
     
@@ -485,13 +463,6 @@ def fetch_emails(account, days=1, since=None, until=None, output_dir=None):
         print(f"❌ 邮箱 {account['email']} 连接失败：{e}")
         traceback.print_exc()
         return []
-    
-    # 性能统计
-    parsed_count = sum(1 for e in emails if any(a.get('summary') for a in e.get('attachments', [])))
-    total_attachments = sum(len(e.get('attachments', [])) for e in emails)
-    print(f"\n✅ 完成：处理 {len(emails)} 封邮件，{total_attachments} 个附件")
-    print(f"   - 完整解析附件的邮件：{parsed_count} 封")
-    print(f"   - 仅统计数量的附件：{total_attachments - sum(len([a for a in e.get('attachments', []) if a.get('summary')]) for e in emails)} 个")
     
     return emails
 
