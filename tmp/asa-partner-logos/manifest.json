@@ -1,0 +1,410 @@
+[
+  {
+    "index": 1,
+    "name": "AIC",
+    "file": "01_AIC.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/AIC-server.png"
+  },
+  {
+    "index": 2,
+    "name": "AMD",
+    "file": "02_AMD.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/amd-partner.png"
+  },
+  {
+    "index": 3,
+    "name": "Ampere",
+    "file": "03_Ampere.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/ampere-partner.png"
+  },
+  {
+    "index": 4,
+    "name": "APC",
+    "file": "04_APC.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/apc.png"
+  },
+  {
+    "index": 5,
+    "name": "Arista",
+    "file": "05_Arista.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/arista.png"
+  },
+  {
+    "index": 6,
+    "name": "ASUS",
+    "file": "06_ASUS.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/asus.png"
+  },
+  {
+    "index": 7,
+    "name": "ATTO",
+    "file": "07_ATTO.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/atto.png"
+  },
+  {
+    "index": 8,
+    "name": "Broadcom",
+    "file": "08_Broadcom.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/broadcom.png"
+  },
+  {
+    "index": 9,
+    "name": "Chenbro",
+    "file": "09_Chenbro.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/chenbro.png"
+  },
+  {
+    "index": 10,
+    "name": "CISCO",
+    "file": "10_CISCO.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/cisco.png"
+  },
+  {
+    "index": 11,
+    "name": "Citrix",
+    "file": "11_Citrix.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/citrix.png"
+  },
+  {
+    "index": 12,
+    "name": "Dell",
+    "file": "12_Dell.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/dell-solutions.png"
+  },
+  {
+    "index": 13,
+    "name": "Eaton",
+    "file": "13_Eaton.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/eaton.png"
+  },
+  {
+    "index": 14,
+    "name": "Edgecore",
+    "file": "14_Edgecore.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/edgecore.png"
+  },
+  {
+    "index": 15,
+    "name": "Engineered Fluids",
+    "file": "15_Engineered_Fluids.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/engineered-fluids.png"
+  },
+  {
+    "index": 16,
+    "name": "Exagrid",
+    "file": "16_Exagrid.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/exagrid.png"
+  },
+  {
+    "index": 17,
+    "name": "Fortinet",
+    "file": "17_Fortinet.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/fortinet.png"
+  },
+  {
+    "index": 18,
+    "name": "Gigabyte",
+    "file": "18_Gigabyte.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/gigabyte-partner.png"
+  },
+  {
+    "index": 19,
+    "name": "Graid Technology",
+    "file": "19_Graid_Technology.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/graid.png"
+  },
+  {
+    "index": 20,
+    "name": "Hammerspace",
+    "file": "20_Hammerspace.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/hammerspace.png"
+  },
+  {
+    "index": 21,
+    "name": "HighPoint",
+    "file": "21_HighPoint.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/Partner_HighPoint.png"
+  },
+  {
+    "index": 22,
+    "name": "Hitachi",
+    "file": "22_Hitachi.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/hitachi.png"
+  },
+  {
+    "index": 23,
+    "name": "Hewlett Packard",
+    "file": "23_Hewlett_Packard.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/hpe.png"
+  },
+  {
+    "index": 24,
+    "name": "Intel",
+    "file": "24_Intel.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/intel-partner.png"
+  },
+  {
+    "index": 25,
+    "name": "Juniper",
+    "file": "25_Juniper.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/juniper.png"
+  },
+  {
+    "index": 26,
+    "name": "Kingston",
+    "file": "26_Kingston.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/kingston.png"
+  },
+  {
+    "index": 27,
+    "name": "Kove",
+    "file": "27_Kove.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/kove.png"
+  },
+  {
+    "index": 28,
+    "name": "Lattice Technology",
+    "file": "28_Lattice_Technology.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/lattice-technology.png"
+  },
+  {
+    "index": 29,
+    "name": "Micas Network",
+    "file": "29_Micas_Network.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/micasnetwork.png"
+  },
+  {
+    "index": 30,
+    "name": "Micron",
+    "file": "30_Micron.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/micron.png"
+  },
+  {
+    "index": 31,
+    "name": "Microsemi",
+    "file": "31_Microsemi.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/microsemi.png"
+  },
+  {
+    "index": 32,
+    "name": "Microsoft",
+    "file": "32_Microsoft.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/microsoft.png"
+  },
+  {
+    "index": 33,
+    "name": "Mitac",
+    "file": "33_Mitac.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/mitac.png"
+  },
+  {
+    "index": 34,
+    "name": "Netapp",
+    "file": "34_Netapp.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/netapp.png"
+  },
+  {
+    "index": 35,
+    "name": "Netgear",
+    "file": "35_Netgear.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/netgear.png"
+  },
+  {
+    "index": 36,
+    "name": "Nexenta",
+    "file": "36_Nexenta.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/nexenta.png"
+  },
+  {
+    "index": 37,
+    "name": "Nimble Storage",
+    "file": "37_Nimble_Storage.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/nimblestorage.png"
+  },
+  {
+    "index": 38,
+    "name": "NVIDIA",
+    "file": "38_NVIDIA.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/nvidia.png"
+  },
+  {
+    "index": 39,
+    "name": "NVIDIA Networking",
+    "file": "39_NVIDIA_Networking.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/nvidia_networking.png"
+  },
+  {
+    "index": 40,
+    "name": "Open-e",
+    "file": "40_Open-e.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/opene.png"
+  },
+  {
+    "index": 41,
+    "name": "Opengear",
+    "file": "41_Opengear.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/opengear.png"
+  },
+  {
+    "index": 42,
+    "name": "Palo Alto Networks",
+    "file": "42_Palo_Alto_Networks.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/palo_alto.png"
+  },
+  {
+    "index": 43,
+    "name": "Pny",
+    "file": "43_Pny.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/pny.png"
+  },
+  {
+    "index": 44,
+    "name": "Promise",
+    "file": "44_Promise.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/promise.png"
+  },
+  {
+    "index": 45,
+    "name": "Proxmox",
+    "file": "45_Proxmox.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/proxmox.png"
+  },
+  {
+    "index": 46,
+    "name": "Purestorage",
+    "file": "46_Purestorage.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/purestorage.png"
+  },
+  {
+    "index": 47,
+    "name": "Qlogic",
+    "file": "47_Qlogic.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/qlogic.png"
+  },
+  {
+    "index": 48,
+    "name": "Quanta",
+    "file": "48_Quanta.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/quanta.png"
+  },
+  {
+    "index": 49,
+    "name": "Raritan",
+    "file": "49_Raritan.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/raritan.png"
+  },
+  {
+    "index": 50,
+    "name": "Red Hat",
+    "file": "50_Red_Hat.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/redhat.png"
+  },
+  {
+    "index": 51,
+    "name": "Samsung",
+    "file": "51_Samsung.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/samsung.png"
+  },
+  {
+    "index": 52,
+    "name": "ScaleFlux",
+    "file": "52_ScaleFlux.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/scaleflux.png"
+  },
+  {
+    "index": 53,
+    "name": "Seagate",
+    "file": "53_Seagate.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/seagate.png"
+  },
+  {
+    "index": 54,
+    "name": "Server Technology",
+    "file": "54_Server_Technology.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/server-technology.png"
+  },
+  {
+    "index": 55,
+    "name": "SK hynix",
+    "file": "55_SK_hynix.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/skhynix.png"
+  },
+  {
+    "index": 56,
+    "name": "Stromasys",
+    "file": "56_Stromasys.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/stromasys-legacy-solutions.png"
+  },
+  {
+    "index": 57,
+    "name": "Submer",
+    "file": "57_Submer.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/submer.png"
+  },
+  {
+    "index": 58,
+    "name": "Supermicro",
+    "file": "58_Supermicro.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/supermicro-solutions.png"
+  },
+  {
+    "index": 59,
+    "name": "Suse",
+    "file": "59_Suse.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/suse.png"
+  },
+  {
+    "index": 60,
+    "name": "Toshiba",
+    "file": "60_Toshiba.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/toshiba.png"
+  },
+  {
+    "index": 61,
+    "name": "Tyan",
+    "file": "61_Tyan.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/tyan.png"
+  },
+  {
+    "index": 62,
+    "name": "Ubuntu",
+    "file": "62_Ubuntu.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/ubuntu.png"
+  },
+  {
+    "index": 63,
+    "name": "Vast",
+    "file": "63_Vast.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/vast.png"
+  },
+  {
+    "index": 64,
+    "name": "Veeam",
+    "file": "64_Veeam.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/veeam.png"
+  },
+  {
+    "index": 65,
+    "name": "Viking",
+    "file": "65_Viking.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/viking.png"
+  },
+  {
+    "index": 66,
+    "name": "Vmware",
+    "file": "66_Vmware.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/vmware.png"
+  },
+  {
+    "index": 67,
+    "name": "Western Digital",
+    "file": "67_Western_Digital.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/WesternDigitalLogo.png"
+  },
+  {
+    "index": 68,
+    "name": "Xinnor",
+    "file": "68_Xinnor.png",
+    "url": "https://www.asacomputers.com/skin/images/partners/logos/xinnor.png"
+  }
+]
