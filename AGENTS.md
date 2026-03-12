@@ -207,6 +207,14 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## Coding Work Preference
+
+- **凡是需要动代码的任务**：默认优先起子 agent 处理，而不是主会话自己硬改。
+- **默认编码模型**：`openai-codex/gpt-5.3-codex`
+- **适用范围**：功能开发、重构、批量改动、需要文件探索/测试的修改。
+- **例外**：特别小的一行改动、纯阅读代码、或用户明确要求不要起子 agent 时，可直接处理。
+- 主会话负责：定义任务、审结果、做小修、向用户汇报。
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
