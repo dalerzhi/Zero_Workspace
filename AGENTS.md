@@ -214,6 +214,8 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 - **适用范围**：功能开发、重构、批量改动、需要文件探索/测试的修改。
 - **例外**：特别小的一行改动、纯阅读代码、或用户明确要求不要起子 agent 时，可直接处理。
 - 主会话负责：定义任务、审结果、做小修、向用户汇报。
+- **统一重试入口**：优先使用 `./scripts/run-coding-subagent-retry.sh` 触发 coding 子任务（默认最多重试 1 次，可配到 2 次）。
+- **工作流文档**：见 `CODING-SUBAGENT-RETRY.md`。
 
 ## Make It Yours
 
