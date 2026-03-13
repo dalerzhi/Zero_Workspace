@@ -1,6 +1,6 @@
 # MEMORY.md - 长期记忆
 
-_最后更新：2026-03-10 06:46_
+_最后更新：2026-03-13 15:55_
 
 ## 技能与工具
 
@@ -129,11 +129,20 @@ _最后更新：2026-03-10 06:46_
 - **原因**：Bill 认为这个模型写代码更强，适合作为默认编码模型。
 - **例外**：极小的一行改动、纯阅读代码、或用户明确要求主会话直接处理时，可不启子 agent。
 
+### 模型/降耗偏好 ⭐
+- **主会话默认模型不要降级到 `bailian/qwen3.5-plus`**。
+- **用户评价**：`qwen3.5-plus` 便宜但工作能力明显不够，不适合作为默认主模型。
+- **接受的降耗方式**：
+  - 关闭 heartbeat
+  - 后台 cron / 周期任务尽量使用便宜模型
+- **不接受的降耗方式**：把 main session 默认模型切成 `qwen3.5-plus`。
+
 ### Gateway / Cron 稳定性修复 ⭐
 - **邮件日报 cron 投递失败根因**：OpenClaw cron delivery 读取的是 `delivery.to`，不是 `delivery.target`。
 - **修复位置**：`~/.openclaw/cron/jobs.json`
 - **Gateway 自动恢复**：增加 watchdog 脚本 `workspace/scripts/openclaw-gateway-watchdog.sh`，由 LaunchAgent `com.zero.openclaw-gateway-watchdog` 每 60 秒巡检。
 - **注意**：watchdog 不能依赖 launchd 的默认 PATH，必须显式使用 `/opt/homebrew/opt/node/bin/node` + OpenClaw 绝对路径，否则会报 `env: node: No such file or directory`。
+- **降耗调整（2026-03-13）**：已关闭 heartbeat（`agents.defaults.heartbeat.every = "0m"`），并将当前有效的日常 cron（邮件日报、Zero Workspace Backup）都切到 `bailian/qwen3.5-plus`。
 
 ## 重要经验
 1. 每天早上先检查 `memory/` 目录和 `MEMORY.md`
@@ -145,6 +154,8 @@ _最后更新：2026-03-10 06:46_
 7. ⚠️ clawhub 安装常限流，用浏览器手动下载 zip
 8. ⚠️ inference.sh 域名被墙，需要代理或手动下载
 9. ⭐ **摄像头调用**: 用 `imagesnap` 命令 (USB 直连)，不是 `nodes camera_snap` (需要配对设备)
+10. ⭐ **飞书新版官方插件排障**：经常是“按能力分批授权”，不是一次 OAuth 全通；用到新的用户态能力时，可能继续弹授权卡片。
+11. ⭐ **飞书机器人私聊限制**：机器人主动给未建立会话的联系人发私聊可能直接 400，更适合群聊、已建立会话或用户态发送场景。
 
 ## 2026-03-09 - 自动整理
 
