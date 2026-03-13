@@ -128,3 +128,31 @@ izwi tts --model Qwen3-TTS-12Hz-0.6B-Base --speaker "male-deep" ...
 - See Also: LRN-20260306-003
 
 ---
+## [ERR-20260313-001] init-session
+
+**Logged**: 2026-03-13T07:02:00+08:00
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+`python3 ~/.openclaw/workspace/scripts/init-session.py` 启动失败，原因是偏好配置 JSON 格式非法。
+
+### Error
+```
+json.decoder.JSONDecodeError: Expecting ',' delimiter: line 20 column 7 (char 574)
+```
+
+### Context
+- Command/operation attempted: `python3 ~/.openclaw/workspace/scripts/init-session.py`
+- Trigger: HEARTBEAT.md 要求 session 启动时自动运行初始化脚本
+- Environment: macOS / Python 3.14
+
+### Suggested Fix
+检查初始化脚本读取的 preferences JSON 文件，在第 20 行附近补上缺失的逗号或修正非法 JSON。
+
+### Metadata
+- Reproducible: yes
+- Related Files: `~/.openclaw/workspace/scripts/init-session.py`, `~/.openclaw/preferences.json`
+
+---

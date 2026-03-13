@@ -281,3 +281,25 @@ _待补充_
 - Tags: auto-logged
 
 ---
+
+## [LRN-2026-03-13-0831] auto
+
+**Logged**: 2026-03-13T08:31:22+0800
+**Priority**: medium
+**Status**: pending
+**Area**: config
+
+### Summary
+补充记录：完成 coding subagent retry workflow，并修复 cron delivery / gateway watchdog 稳定性问题。
+
+### Details
+_待补充_
+
+### Suggested Action
+_待补充_
+
+### Metadata
+- Source: quick-log
+- Tags: auto-logged
+
+---
