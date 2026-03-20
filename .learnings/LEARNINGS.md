@@ -303,3 +303,38 @@ _待补充_
 - Tags: auto-logged
 
 ---
+## [LRN-20260320-001] correction
+
+**Logged**: 2026-03-20T00:41:00Z
+**Priority**: high
+**Status**: pending
+**Area**: infra
+
+### Summary
+承诺“我会盯着进度”后，后台任务失败没有被我主动接住并继续推进，导致需要用户来追问。
+
+### Details
+本次视频生成任务在后台 exec 失败，系统已经给出失败事件，但我没有把它当成“需要立即接管的待办”，也没有主动做三件事：
+1. 立刻检查失败原因；
+2. 自动进入修复/重跑；
+3. 主动向用户同步状态。
+
+问题不在于脚本会失败，而在于我把“启动任务”误当成了“交付结果”，缺少结果导向的闭环。
+
+### Suggested Action
+对于所有我明确承诺“我盯着/我来跟进”的长任务，执行统一闭环：
+- 启动前定义完成条件（产物路径、成功标志）；
+- 后台运行后必须跟踪到成功/失败；
+- 失败后默认先自查并尝试修复一次，再决定是否打扰用户；
+- 若仍未完成，主动汇报“卡点+下一步”，不能等用户追问。
+
+### Metadata
+- Source: user_feedback
+- Related Files: scripts/build_deadbug_sample_v2.py
+- Tags: follow-through, background-task, proactive, correction
+- Pattern-Key: followthrough.background-task.closure
+- Recurrence-Count: 1
+- First-Seen: 2026-03-20
+- Last-Seen: 2026-03-20
+
+---
