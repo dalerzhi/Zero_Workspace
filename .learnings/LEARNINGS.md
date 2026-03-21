@@ -338,3 +338,88 @@ _待补充_
 - Last-Seen: 2026-03-20
 
 ---
+## [LRN-20260321-001] correction
+
+**Logged**: 2026-03-20T16:36:00Z
+**Priority**: high
+**Status**: pending
+**Area**: infra
+
+### Summary
+做外部搜索和技能补强时，应该优先用 Agent Reach 或 Tavily；ClawHub 限流时不该等待，应直接走手动安装；GitHub 上应主动关注并安装 cli-anything 这类高价值工具。
+
+### Details
+用户明确指出三点工作方法修正：
+1. 搜索外部资源/方案时，优先使用 Agent Reach 或 Tavily，而不是忘了现成能力后退回低效方案。
+2. GitHub 搜索 `cli-anything`，并安装到本地，它对后续能力扩展有用。
+3. 遇到 ClawHub rate limit，不要停住等待，应直接转手动安装（如 git clone / 浏览器下载 / 本地放置 skill）。
+
+### Suggested Action
+- 以后做“找 skill / 找 repo / 找外部方案”时，默认先检查 Agent Reach / Tavily 可用性。
+- 把“ClawHub 限流 => 手动安装”固化为标准兜底流程。
+- 将这三条同时写入长期记忆，避免再次忘记。
+
+### Metadata
+- Source: user_feedback
+- Tags: search, agent-reach, tavily, clawhub, manual-install, cli-anything
+- Pattern-Key: capability-search.agent-reach-first-and-manual-fallback
+- Recurrence-Count: 1
+- First-Seen: 2026-03-21
+- Last-Seen: 2026-03-21
+
+---
+## [LRN-20260321-001] correction
+
+**Logged**: 2026-03-21T08:00:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: docs
+
+### Summary
+用户追问“昨天的视频制作进度”时，不能只根据当前产物猜测，应先核对近期真实工作上下文（会话/记录/计划），避免误把旧成品当作“昨天最后版本”。
+
+### Details
+本次我先检查了本地视频产物并直接回答“做出来了”，但用户指出昨天最后实际停留在“搜索 ClawHub / GitHub 上的 skills 并规划制作方案”的阶段。说明仅凭产物时间戳不足以回答“做到哪了”，需要先核对更完整的上下文，再回答或续做。
+
+### Suggested Action
+以后遇到“做到哪了/昨天最后到哪一步”这类问题时：
+1. 先查 memory / git log / 会话记录 / 计划文档
+2. 若仍不确定，明确说“我查到的上下文不足”
+3. 再给出当前可继续推进的下一步，而不是直接认定已完成
+
+### Metadata
+- Source: user_feedback
+- Related Files: MEMORY.md, memory/
+- Tags: correction, continuity, status-reporting
+
+---
+
+## [LRN-20260321-002] correction
+
+**Logged**: 2026-03-21T19:49:37.483115+08:00
+**Priority**: high
+**Status**: pending
+**Area**: docs
+
+### Summary
+视频交付必须先经过明确的自检闸门（音频、字幕、黑屏/脏段、时长结构），不合格不得先发用户验收。
+
+### Details
+用户指出 v5 虽修掉 30s 后黑屏段，但又出现两个基础问题：没有明显 BGM、没有字幕。说明当前流程只是在修单个反馈点，没有做完整交付检查。以后视频类产物必须先执行 QA checklist，通过后才能发送。
+
+### Suggested Action
+建立 deadbug / workout 视频交付前检查清单，至少覆盖：
+1. 是否存在中文 TTS
+2. 是否存在可感知 BGM
+3. 是否有字幕/cue overlay
+4. 是否无英文原声泄漏
+5. 是否无黑屏/标题污染段
+6. 是否抽样检查关键时间点帧与音频
+7. 不通过则返工，不先发用户
+
+### Metadata
+- Source: user_feedback
+- Related Files: VIDEO-PRODUCTION-PLAN-V1.md
+- Tags: correction, qa, video-pipeline
+
+---

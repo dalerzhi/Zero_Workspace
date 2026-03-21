@@ -1,0 +1,34 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'video-output/final-samples/audio/deadbug_v6_voice.m4a':
+  Metadata:
+    major_brand     : M4A 
+    minor_version   : 512
+    compatible_brands: M4A isomiso2
+    encoder         : Lavf62.3.100
+  Duration: 00:00:40.80, start: 0.000000, bitrate: 192 kb/s
+  Stream #0:0[0x1](und): Audio: aac (LC) (mp4a / 0x6134706D), 96000 Hz, mono, fltp, 189 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+[Parsed_volumedetect_0 @ 0x9e0c0c9c0] n_samples: 0
+Stream mapping:
+  Stream #0:0 -> #0:0 (aac (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    major_brand     : M4A 
+    minor_version   : 512
+    compatible_brands: M4A isomiso2
+    encoder         : Lavf62.3.100
+  Stream #0:0(und): Audio: pcm_s16le, 96000 Hz, mono, s16, 1536 kb/s (default)
+    Metadata:
+      encoder         : Lavc62.11.100 pcm_s16le
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+[Parsed_volumedetect_0 @ 0x9e0c0ce40] n_samples: 3916800
+[Parsed_volumedetect_0 @ 0x9e0c0ce40] mean_volume: -17.4 dB
+[Parsed_volumedetect_0 @ 0x9e0c0ce40] max_volume: -1.4 dB
+[Parsed_volumedetect_0 @ 0x9e0c0ce40] histogram_1db: 561
+[Parsed_volumedetect_0 @ 0x9e0c0ce40] histogram_2db: 2296
+[Parsed_volumedetect_0 @ 0x9e0c0ce40] histogram_3db: 6504
+[out#0/null @ 0x9e0c0c6c0] video:0KiB audio:7650KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:00:40.80 bitrate=N/A speed=1.03e+03x elapsed=0:00:00.03    

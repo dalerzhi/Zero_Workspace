@@ -41,6 +41,12 @@ _最后更新：2026-03-13 15:55_
 - **默认音色**：`male-deep` (深沉男声)
 
 ### Agent Reach (网络搜索第一优先) ⭐
+### Agent Reach / Tavily 搜索优先级修正 ⭐
+- **规则**：做外部方案、技能、仓库、工具搜索时，优先想到并使用 **Agent Reach**；若不可用，再考虑 Tavily / 其他搜索手段。
+- **禁止复发**：不要忘了自己已有的搜索能力，退回到低效兜底。
+- **ClawHub 限流处理**：遇到 `Rate limit exceeded`，不要等，直接改走**手动安装**（git clone / 浏览器下载 zip / 本地落盘）。
+- **工具补强**：GitHub 上遇到高价值工具（如 `cli-anything`），应主动搜索、评估并安装。
+
 - **重要**：网络搜索时优先使用 Agent Reach，而不是 web_search
 - 状态：✅ 已安装 (v1.3.0)
 - 位置：`~/.agent-reach/` + Python 包 `agent-reach`

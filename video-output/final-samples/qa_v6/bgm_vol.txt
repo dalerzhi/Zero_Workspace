@@ -1,0 +1,22 @@
+Input #0, wav, from 'video-output/final-samples/audio/deadbug_v6_bgm.wav':
+  Metadata:
+    encoder         : Lavf62.3.100
+  Duration: 00:00:55.00, bitrate: 3072 kb/s
+  Stream #0:0: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 192000 Hz, mono, s16, 3072 kb/s
+[Parsed_volumedetect_0 @ 0x7c905c480] n_samples: 0
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_s16le (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf62.3.100
+  Stream #0:0: Audio: pcm_s16le, 192000 Hz, mono, s16, 3072 kb/s
+    Metadata:
+      encoder         : Lavc62.11.100 pcm_s16le
+[Parsed_volumedetect_0 @ 0x7c905c900] n_samples: 10560000
+[Parsed_volumedetect_0 @ 0x7c905c900] mean_volume: -23.5 dB
+[Parsed_volumedetect_0 @ 0x7c905c900] max_volume: -14.4 dB
+[Parsed_volumedetect_0 @ 0x7c905c900] histogram_14db: 758
+[Parsed_volumedetect_0 @ 0x7c905c900] histogram_15db: 31161
+[out#0/null @ 0x7c905c180] video:0KiB audio:20625KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:00:55.00 bitrate=N/A speed=6.45e+03x elapsed=0:00:00.00    
