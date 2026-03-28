@@ -423,3 +423,29 @@ _待补充_
 - Tags: correction, qa, video-pipeline
 
 ---
+
+## [LRN-20260328-001] correction
+
+**Logged**: 2026-03-28T20:59:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: infra
+
+### Summary
+“会打电话”对用户来说指的是可实时双向交流的电话通话，不是单向 TTS/语音通知外呼。
+
+### Details
+用户明确纠正：电话能力的目标是“我们通过电话交谈”。此前把阿里云 `SingleCallByTts` / `SingleCallByVoice` 当作主线，只能实现拨通后播放语音，不能满足需求。真正目标应是具备实时双向音频、转写、生成、回放和通话控制的 telephony/VoIP 架构。
+
+### Suggested Action
+后续研究主线应切到：
+1. 支持实时双向媒体流的电话/VoIP 平台
+2. 或可由已配对手机节点发起真实通话并把音频桥接给代理
+3. 单向语音通知 API 仅作为兜底，不再当成“会打电话”能力的完成标准
+
+### Metadata
+- Source: user_feedback
+- Related Files: docs/aliyun-voice-call-mvp.md, scripts/aliyun_voice_call.py
+- Tags: telephony, duplex-audio, correction
+
+---
