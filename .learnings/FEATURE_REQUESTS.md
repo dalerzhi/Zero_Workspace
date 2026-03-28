@@ -65,3 +65,31 @@ izwi tts --model Qwen3-TTS-12Hz-1.7B-VoiceDesign-4bit \
 - Related Features: izwi-tts, voicedesign
 
 ---
+
+## [FEAT-20260328-001] phone_calling
+
+**Logged**: 2026-03-28T19:08:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: infra
+
+### Requested Capability
+以代理身份主动拨打电话给用户
+
+### User Context
+用户要求：“你想办法学会打电话，打个电话给我，我的号码 13901241378”
+
+### Complexity Estimate
+complex
+
+### Suggested Implementation
+需要新增可控的电话外呼能力，例如：
+1. 绑定已配对手机节点并开放拨号能力
+2. 接入 VoIP / SIP / Twilio 类电话桥接
+3. 增加明确的用户确认与安全策略（拨号对象、内容、计费、外呼权限）
+
+### Metadata
+- Frequency: first_time
+- Related Features: nodes, telephony, voip, paired-device
+
+---
