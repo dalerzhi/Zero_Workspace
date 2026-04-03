@@ -129,6 +129,15 @@ _最后更新：2026-03-22 23:28_
   - 拍摄文件默认保存在 workspace 目录
 - **配置位置**: `workspace/TOOLS.md` (详细配置)
 
+### Obsidian（本地笔记）⭐
+- **状态**：✅ 已在本机部署
+- **桌面版**：`/Applications/Obsidian.app`
+- **CLI**：`/opt/homebrew/bin/obsidian-cli`
+- **默认 Vault**：`/Users/a123456/.openclaw/workspace/ObsidianVault`
+- **Vault 名称**：`ObsidianVault`
+- **配置文件**：`~/Library/Application Support/obsidian/obsidian.json`
+- **备注**：Obsidian Vault 本质就是普通 Markdown 文件夹，可直接用文件工具读写；`obsidian-cli print-default` 已可用。
+
 ### 编码任务偏好 ⭐
 - **默认策略**：凡是需要动代码的任务，优先起子 agent，而不是主会话直接改。
 - **默认子 agent 模型**：`openai-codex/gpt-5.3-codex`
@@ -195,7 +204,7 @@ Conversation info (untrusted metadata): ```json {   "message_id": "om_x100b55d52
 ### 10. 用户需求
 {"type":"session","version":3,"id":"5aae7da1-9fc3-426c-bd8b-29f2e37f978d","timestamp":"2026-03-07T05:20:40.839Z","cwd":"/Users/a123456/.openclaw/workspace"} {"type":"model_change","id":"6aac5331","par...
 
-��经完整保存：  ## 📋 昨晚工作摘要（2026-03-07）  ### 主要任务：修复飞书语音时长显示问题  **问题**：飞书语音消息显示时长 `0:00`  **根因**：OpenClaw 飞书插件上传音频时没有传递 `duration` 参数  **解决方案**： 1. ✅ 备份原文件：`media.ts.backup.20260307_18081...
+��经完整保存：  ## 📋 昨晚工作摘要（2026-03-07）  ### 主要任务：修复飞书语音时长显示问题  **问题**：飞书语音消息显示时长 `0:00`  **根因**：OpenClaw 飞书插件上传音频时没有传递 `duration` 参数  **解决方案**： 1. ✅ 备份原文件：`media.ts.backup.20260307_18081...
 
 ### 9. 用户需求
 # 2026-03-08 - 周日  ## 📝 日志  _暂无手动记录_  ## 🔄 自动备份  - Git 提交：`1baf63a Auto backup: 2026-03-08 00:00:10`  --- **创建时间**: 2026-03-08 06:00 **状态**: 待填充
