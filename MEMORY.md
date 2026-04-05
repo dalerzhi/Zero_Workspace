@@ -159,6 +159,15 @@ _最后更新：2026-03-22 23:28_
 - **注意**：watchdog 不能依赖 launchd 的默认 PATH，必须显式使用 `/opt/homebrew/opt/node/bin/node` + OpenClaw 绝对路径，否则会报 `env: node: No such file or directory`。
 - **降耗调整（2026-03-13）**：已关闭 heartbeat（`agents.defaults.heartbeat.every = "0m"`），并将当前有效的日常 cron（邮件日报、Zero Workspace Backup）都切到 `bailian/qwen3.5-plus`。
 
+### Agent Orchestration / Watchdog（2026-04-05）⭐
+- **默认原则**：所有长时间运行的本地 CLI agent，不再裸跑；默认必须走 `scripts/agent-watchdog.py`，标准任务优先走 `scripts/run-agent-task.py`。
+- **本机 backend 现状**：`claude` 可用；`codex` 当前不在 PATH。不要假设 codex 可直接启动。
+- **关键教训**：不能把“任务已提交”当成“agent 已成功启动”。
+- **已落地文件**：`AGENT-WATCHDOG.md`、`AGENT-TASK-RUNNER.md`、`scripts/agent-watchdog.py`、`scripts/run-agent-task.py`。
+- **重要坑**：OpenClaw 的 background exec 可能在外层工具会话结束时连带 SIGTERM 父进程；真后台多 agent 任务要有 detached 层，不能只依赖工具会话寿命。
+- **下一步缺口**：仅靠“首条 stdout 出现”判定启动成功，对 Claude 类长任务不稳；后续要升级为更可靠的启动/存活判定。
+- **上游学习来源**：已系统研究 Claude Code 源码，重点吸收了 session 生命周期、bridge/transport 抽象、结构化输出、状态快照、去重/背压/重连等设计。
+
 ## 重要经验
 1. 每天早上先检查 `memory/` 目录和 `MEMORY.md`
 2. 飞书语音技能已经就绪，可以直接用

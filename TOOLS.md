@@ -87,6 +87,30 @@ python3 scripts/feishu-voice.py "文本" --voice-id 8316cdf1
 
 ---
 
+### Agent / Orchestration 本机备注 ⭐
+
+**本机可用本地 agent backend**
+- `claude` → `/opt/homebrew/bin/claude` ✅
+- `codex` → 当前 **不在 PATH** ⚠️
+- `openclaw` → `/opt/homebrew/bin/openclaw`
+
+**默认启动入口**
+```bash
+# 标准写作 / 调研 / 编码任务
+python3 scripts/run-agent-task.py --kind writing|research|coding --label xxx --task "..."
+
+# 复杂场景直接用底层 watchdog
+python3 scripts/agent-watchdog.py ...
+```
+
+**运行态目录**
+- `.runs/agent-watchdog/` ← 每次尝试的 `status.json` / `agent.log`
+
+**关键环境事实**
+- 不要把“任务已提交”当成“agent 已成功启动”
+- OpenClaw 的 background exec 可能让外层会话结束时连带 SIGTERM 父进程；做真后台多 agent 任务时，优先用 detached 层（如 `nohup ... &`）而不是只依赖工具会话寿命
+- 仅靠“首条 stdout”判断成功启动，对 Claude 这类长任务不稳，后续要升级为更可靠的存活判定
+
 ### 📷 摄像头配置 ⭐
 
 **Insta360 Link 2 (USB 摄像头)** ✅
