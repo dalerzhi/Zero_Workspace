@@ -449,3 +449,35 @@ _待补充_
 - Tags: telephony, duplex-audio, correction
 
 ---
+
+## [LRN-20260405-001] best_practice
+
+**Logged**: 2026-04-05T15:22:05+08:00
+**Priority**: high
+**Status**: promoted
+**Area**: infra
+
+### Summary
+Child-agent orchestration must be watchdog-driven; never treat "task submitted" as "agent successfully started".
+
+### Details
+A recurring failure mode is: the parent launches a background CLI agent, sees a PID, and then waits blindly. In practice the child may never have started real work because the binary is missing, the command is malformed, or the process is hung before first output. The durable fix is a watchdog wrapper with binary preflight, startup timeout, idle timeout, wall timeout, bounded retries, and status files.
+
+### Suggested Action
+Default all long-running CLI agents to `python3 scripts/agent-watchdog.py ...` and require progress to be evidenced by first log output and/or artifact changes.
+
+### Metadata
+- Source: simplify-and-harden
+- Related Files: scripts/agent-watchdog.py, AGENT-WATCHDOG.md, AGENTS.md
+- Tags: agent, watchdog, timeout, orchestration
+- Pattern-Key: harden.child_agent_watchdog
+- Recurrence-Count: 1
+- First-Seen: 2026-04-05
+- Last-Seen: 2026-04-05
+
+### Resolution
+- **Resolved**: 2026-04-05T15:22:05+08:00
+- **Commit/PR**: pending
+- **Notes**: Promoted into AGENTS.md and implemented as `scripts/agent-watchdog.py` with run summaries under `.runs/agent-watchdog/`.
+
+---

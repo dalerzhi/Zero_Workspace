@@ -156,3 +156,32 @@ json.decoder.JSONDecodeError: Expecting ',' delimiter: line 20 column 7 (char 57
 - Related Files: `~/.openclaw/workspace/scripts/init-session.py`, `~/.openclaw/preferences.json`
 
 ---
+
+## [ERR-20260405-001] agent-cli-preflight-missing
+
+**Logged**: 2026-04-05T15:22:05+08:00
+**Priority**: high
+**Status**: pending
+**Area**: infra
+
+### Summary
+Main agent launched local child-agent commands without verifying the target CLI existed on PATH, causing silent fake-starts and long useless waits.
+
+### Error
+```
+nohup: codex: No such file or directory
+```
+
+### Context
+- Operation attempted: local multi-agent orchestration for content work
+- Main agent started `nohup codex ... &` and treated it as a live worker
+- Environment reality: `codex` missing from PATH, `claude` available
+
+### Suggested Fix
+Introduce mandatory binary preflight + startup timeout + idle timeout + bounded retries before treating any child-agent task as running.
+
+### Metadata
+- Reproducible: yes
+- Related Files: scripts/agent-watchdog.py, AGENT-WATCHDOG.md, AGENTS.md
+
+---

@@ -216,6 +216,10 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 - 主会话负责：定义任务、审结果、做小修、向用户汇报。
 - **统一重试入口**：优先使用 `./scripts/run-coding-subagent-retry.sh` 触发 coding 子任务（默认最多重试 1 次，可配到 2 次）。
 - **工作流文档**：见 `CODING-SUBAGENT-RETRY.md`。
+- **终局规则（更高优先级）**：所有长时间运行的 CLI 子 agent / coding agent / 写作 agent，默认必须通过 `python3 scripts/agent-watchdog.py ...` 启动；不允许再裸跑 `nohup xxx &` 然后靠猜测等待。
+- **强制检查**：启动前做 binary preflight；启动后必须有首条日志；运行中必须有日志或产物推进；否则按 startup timeout / idle timeout / wall timeout 处理。
+- **状态来源**：以后主会话对外汇报 agent 进度，优先依据 `.runs/agent-watchdog/.../status.json` 和产物变化，而不是“它应该还在跑”。
+- **设计原则**：不把“任务已提交”当作“agent 已启动”；不把“还在跑”当作“有进展”；不允许无限等待。详细说明见 `AGENT-WATCHDOG.md`。
 
 ## Make It Yours
 
