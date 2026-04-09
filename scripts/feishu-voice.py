@@ -51,7 +51,7 @@ def get_tenant_token():
 def generate_tts(text, voice_id=DEFAULT_VOICE_ID, output_file=None):
     """使用 Noiz API 生成 TTS"""
     api_key = get_noiz_api_key()
-    
+
     url = "https://noiz.ai/v1/text-to-speech"
     headers = {"Authorization": api_key}
     data = {
@@ -60,22 +60,30 @@ def generate_tts(text, voice_id=DEFAULT_VOICE_ID, output_file=None):
         "output_format": "wav",
         "speed": "1.0"
     }
-    
+
     print(f"🎤 正在生成 TTS (voice_id: {voice_id})...")
     resp = requests.post(url, headers=headers, data=data)
-    
+
     if resp.status_code != 200:
-        print(f"❌ TTS 生成失败：{resp.status_code}")
-        print(resp.text)
-        sys.exit(1)
-    
-    # 保存 WAV 文件
+        raise RuntimeError(f"TTS 生成失败：HTTP {resp.status_code} {resp.text}")
+
+    content_type = (resp.headers.get('content-type') or '').lower()
+    body = resp.content
+
+    # Noiz 在音色不存在等情况下，有时也会返回 200 + JSON 错误体
+    if 'json' in content_type or (body and body[:1] == b'{'):
+        try:
+            err = resp.json()
+        except Exception:
+            err = {"raw": body.decode('utf-8', errors='replace')}
+        raise RuntimeError(f"TTS 生成失败：{err}")
+
     if output_file is None:
         output_file = WORKSPACE / f"voice_{os.getpid()}.wav"
-    
+
     with open(output_file, 'wb') as f:
-        f.write(resp.content)
-    
+        f.write(body)
+
     print(f"✅ TTS 生成完成：{output_file}")
     return output_file
 
@@ -195,9 +203,21 @@ def send_feishu_voice(text, chat_id=None, voice_id=DEFAULT_VOICE_ID, cleanup=Tru
     """完整流程：生成 TTS → 转换 OPUS → 发送到飞书"""
     if chat_id is None:
         chat_id = DEFAULT_CHAT_ID
-    
-    # 1. 生成 TTS
-    wav_file = generate_tts(text, voice_id)
+
+    requested_voice_id = voice_id
+    fallback_voice_id = DEFAULT_VOICE_ID
+
+    # 1. 生成 TTS，失败时自动回退默认音色
+    try:
+        wav_file = generate_tts(text, requested_voice_id)
+        actual_voice_id = requested_voice_id
+    except Exception as e:
+        if requested_voice_id != fallback_voice_id:
+            print(f"⚠️ 音色 {requested_voice_id} 不可用，自动回退到默认音色 {fallback_voice_id}：{e}")
+            wav_file = generate_tts(text, fallback_voice_id)
+            actual_voice_id = fallback_voice_id
+        else:
+            raise
     
     # 2. 转换为 OPUS
     opus_file = convert_to_opus(wav_file)
@@ -230,6 +250,7 @@ def send_feishu_voice(text, chat_id=None, voice_id=DEFAULT_VOICE_ID, cleanup=Tru
     print(f"   消息 ID: {msg_id}")
     print(f"   接收者：{chat_id}")
     print(f"   时长：{duration_ms}ms")
+    print(f"   实际音色：{actual_voice_id}")
     
     return msg_id
 
